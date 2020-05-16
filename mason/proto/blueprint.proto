@@ -1,0 +1,34 @@
+syntax = 'proto3';
+
+import "google/protobuf/any.proto";
+
+package mason.blueprint;
+
+message Connection {
+  string source = 1;
+  string target = 2;
+}
+
+message Port {
+  string name = 1;
+  google.protobuf.Any value = 2;
+}
+
+message Node {
+  string uid = 1;
+  string name = 2;
+  string title = 3;
+  string type = 4;
+  repeated Port ports = 5;
+  repeated Node nodes = 6;
+}
+
+
+message Blueprint {
+  string uid = 1;
+  string name = 2;
+  string title = 3;
+  string type = 4;
+  repeated Node nodes = 5;
+  repeated Connection connections = 6;
+}

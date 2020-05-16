@@ -1,0 +1,33 @@
+syntax = 'proto3';
+
+package mason.library;
+
+message Port {
+  string name = 1;
+  string type = 2;
+  string direction = 3;
+  bool sequence = 4;
+  bool map = 5;
+  repeated string choices = 6;
+  string default = 7;
+}
+
+message Node {
+  string group = 1;
+  string name = 2;
+  repeated Port ports = 3;
+  repeated string signals = 4;
+  repeated string slots = 5;
+}
+
+message Blueprint {
+  string group = 1;
+  string name = 2;
+  repeated string signals = 4;
+  repeated string slots = 5;
+}
+
+message Library {
+  repeated Node nodes = 1;
+  repeated Blueprint blueprints = 2;
+}
