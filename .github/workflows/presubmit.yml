@@ -1,7 +1,7 @@
-name: Presubmit
+name: Pre-Submit Checks
 
 on:
-  - push
+  push
 
 jobs:
   build:
