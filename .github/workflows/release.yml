@@ -17,20 +17,28 @@ jobs:
         python-version: [3.7]
 
     steps:
-    - uses: actions/checkout@v1
+    - uses: actions/checkout@mv1
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v1
       with:
         python-version: ${{ matrix.python-version }}
 
     - name: Bump Version
+      with:
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
       run: |
         pip install poetry
         poetry version patch
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
         git tag v$(poetry version | cut -d ' ' -f 2-)
         git commit -am "Bumped version."
-        git push
-        git push --tags
+
+    - name: Push changes
+      uses: ad-m/github-push-action@v1
+      tags: true
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Release to PyPi
       run: |
