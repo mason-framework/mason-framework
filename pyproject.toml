@@ -7,9 +7,6 @@ packages = [
   { include = "mason"}
 ]
 
-[tool.poetry.scripts]
-mason = 'mason.cli:mason_cli'
-
 [tool.poetry.dependencies]
 python = "^3.7"
 attrs = "^19.3.0"
