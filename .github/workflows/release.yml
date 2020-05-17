@@ -27,10 +27,13 @@ jobs:
       run: |
         pip install poetry
         poetry version patch
+
+    - name: Commit files
+      run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git tag v$(poetry version | cut -d ' ' -f 2-)
         git commit -am "Bumped version."
+        git tag v$(poetry version | cut -d ' ' -f 2-)
 
     - name: Push changes
       uses: ad-m/github-push-action@master
