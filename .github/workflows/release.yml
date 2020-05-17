@@ -33,11 +33,11 @@ jobs:
         git commit -am "Bumped version."
 
     - name: Push changes
-      uses: ad-m/github-push-action@v1
+      uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         tags: true
 
-    - name: Release to PyPi
-      run: |
-        poetry publish
+    # - name: Release to PyPi
+    #   run: |
+    #     poetry publish
