@@ -1,7 +1,10 @@
 name: Pre-Submit Checks
 
 on:
-  push
+  push:
+    branches-ignore:
+      - master
+      - release/*
 
 jobs:
   build:
