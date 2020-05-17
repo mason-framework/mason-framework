@@ -1,4 +1,2 @@
-Mason Framework
-----
-
-Coming soon.
+# Mason Framework
+Documentation coming soon.

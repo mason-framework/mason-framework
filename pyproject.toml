@@ -1,20 +1,18 @@
 [tool.poetry]
 name = "mason-framework"
-version = "0.0.0"
+version = "0.0.1"
 description = "Node based building blocks."
-authors = []
+authors = ["Eric Hulser <eric.hulser@gmail.com>"]
 packages = [
   { include = "mason"}
 ]
-
-[tool.poetry.scripts]
-mason = 'mason.cli:mason_cli'
 
 [tool.poetry.dependencies]
 python = "^3.7"
 attrs = "^19.3.0"
 protobuf = "^3.11.3"
 pyyaml = "^5.3.1"
+importlib-metadata = "^1.6.0"
 
 [tool.poetry.dev-dependencies]
 aioconsole = "^0.1.16"
