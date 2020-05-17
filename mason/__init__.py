@@ -7,6 +7,13 @@ from mason import io
 from mason import node
 from mason import port
 
+try:
+    from importlib import metadata  # Python 3.8+
+except ImportError:
+    import importlib_metadata as metadata  # Python 3.7<
+
+__version__ = metadata.version('mason-framework')
+
 Blueprint = node.Blueprint
 Library = library.Library
 Node = node.Node
