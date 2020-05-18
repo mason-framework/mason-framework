@@ -1,5 +1,6 @@
 """Loaders for mason types."""
 import enum
+import functools
 import json
 from typing import Any, Dict, Optional
 
@@ -10,6 +11,7 @@ from mason import library as _lib
 from mason import node
 from mason import port
 from mason import schema
+from mason.proto import config_pb2
 from mason.proto import blueprint_pb2
 from mason.proto import library_pb2
 
@@ -89,6 +91,16 @@ def _dump_blueprint_schema(bp_schema: schema.Schema) -> Dict[str, Any]:
     return json_format.MessageToDict(bp_config)
 
 
+def _load_data(filename: str) -> Dict[str, Any]:
+    """Loads content from a file."""
+    content = _read_content(filename)
+    if filename.endswith('.yaml') or filename.endswith('.yml'):
+        return yaml.safe_load(content)
+    if filename.endswith('json'):
+        return json.loads(content)
+    raise RuntimeError(f'Unknown file format: {filename}.')
+
+
 def dump_library(library: Optional[_lib.Library] = None) -> Dict[str, Any]:
     """Dumps library instance to configuration."""
     library = library or _lib.get_default_library()
@@ -102,16 +114,24 @@ def dump_library(library: Optional[_lib.Library] = None) -> Dict[str, Any]:
     return json_format.MessageToDict(config)
 
 
+def load_config(filename: str):
+    """Loads a configuration file for mason."""
+    data = _load_data(filename)
+    conf = json_format.ParseDict(data, config_pb2.Config())
+    # pylint: disable=no-member
+    modules = set(conf.library.modules)
+    if conf.library.extends_default:
+        modules.update(_lib.DEFAULT_MODULES)
+    _lib.DefaultLibrary = functools.partial(_lib.Library,
+                                            version=conf.library.version,
+                                            modules=list(modules))
+    # pylint: enable=no-member
+
+
 def load_blueprint(
         filename: str,
         library: Optional[_lib.Library] = None) -> node.Blueprint:
     """Loads a blueprint file from disk."""
-    content = _read_content(filename)
-    if filename.endswith('.yaml') or filename.endswith('.yml'):
-        data = yaml.safe_load(content)
-    elif filename.endswith('json'):
-        data = json.loads(content)
-    else:
-        raise RuntimeError(f'Unknown file format: {filename}.')
+    data = _load_data(filename)
     bp_config = json_format.ParseDict(data, blueprint_pb2.Blueprint())
     return _create_blueprint(bp_config, library or _lib.get_default_library())

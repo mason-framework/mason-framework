@@ -137,7 +137,7 @@ def test_io_dump_library():
 
     Move.__schema__.group = 'test'
 
-    mock_library = library.Library(autoload_defaults=False)
+    mock_library = library.Library()
     mock_library.blueprint_types['node.Blueprint'] = node.Blueprint
     mock_library.node_types['test.Move'] = Move
     actual = io.dump_library(mock_library)
@@ -159,3 +159,58 @@ def test_io_dump_library():
         }]
     }
     assert actual == expected
+
+
+def test_io_load_config_sets_default_library():
+    data = {
+        'library': {
+            'version': 2,
+            'modules': [
+                'mason.nodes.flow',
+                'mason.nodes.logic'
+            ]
+        }
+    }
+    _DefaultLibrary = library.DefaultLibrary
+    try:
+        with mock.patch.object(io, '_load_data', return_value=data) as mock_dat:
+            io.load_config('/path/to/file.yaml')
+        mock_dat.assert_called_once_with('/path/to/file.yaml')
+        assert library.DefaultLibrary is not _DefaultLibrary
+        with mock.patch.object(library.Library, 'load') as mock_load:
+            lib = library.DefaultLibrary()
+        assert lib.version == 2
+        assert mock_load.call_count == 2
+        mock_load.assert_any_call('mason.nodes.flow')
+        mock_load.assert_any_call('mason.nodes.logic')
+    finally:
+        library.DefaultLibrary = _DefaultLibrary
+
+
+def test_io_load_config_extends_default_library():
+    data = {
+        'library': {
+            'version': 2,
+            'extends_default': True,
+            'modules': [
+                'custom.nodes',
+                'custom.nodes2'
+            ]
+        }
+    }
+    _DefaultLibrary = library.DefaultLibrary
+    try:
+        with mock.patch.object(io, '_load_data', return_value=data) as mock_dat:
+            io.load_config('/path/to/file.yaml')
+        mock_dat.assert_called_once_with('/path/to/file.yaml')
+        assert library.DefaultLibrary is not _DefaultLibrary
+        with mock.patch.object(library.Library, 'load') as mock_load:
+            lib = library.DefaultLibrary()
+        assert lib.version == 2
+        assert mock_load.call_count == 2 + len(library.DEFAULT_MODULES)
+        mock_load.assert_any_call('mason.nodes.flow')
+        mock_load.assert_any_call('mason.nodes.logic')
+        mock_load.assert_any_call('custom.nodes')
+        mock_load.assert_any_call('custom.nodes2')
+    finally:
+        library.DefaultLibrary = _DefaultLibrary
