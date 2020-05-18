@@ -2,11 +2,11 @@
 import importlib
 import functools
 import types
-from typing import Any, Dict, Type
+from typing import Any, Dict, Sequence, Union, Type
 
 from mason import node
 
-_DEFAULT_MODULES = (
+DEFAULT_MODULES = (
     'mason.nodes.data',
     'mason.nodes.flow',
     'mason.nodes.log',
@@ -18,18 +18,23 @@ _DEFAULT_MODULES = (
 class Library:
     """Library to handle dynamic loading and creation of nodes."""
 
-    def __init__(self, autoload_defaults: bool = False):
+    def __init__(self,
+                 version: int = 1,
+                 modules: Sequence[str] = None):
+        self.version = version
         self.blueprint_types: Dict[str, Type[node.Blueprint]] = {}
         self.node_types: Dict[str, Type[node.Node]] = {}
-        if autoload_defaults:
-            self.load_defaults()
+        if modules:
+            for module in modules:
+                self.load(module)
 
-    def load(self, package_name: str):
+    def load(self, module: Union[str, types.ModuleType]):
         """Loads a package of nodes into the library."""
-        module = importlib.import_module(package_name)
-        self.load_module(module)
+        if isinstance(module, str):
+            module = importlib.import_module(module)
+        self.load_scope(vars(module))
 
-    def load_items(self, items: Dict[str, Any]):
+    def load_scope(self, items: Dict[str, Any]):
         """Loads nodes and blueprints from a dictionary."""
         for item in items.values():
             if hasattr(item, '__node__'):
@@ -47,16 +52,6 @@ class Library:
             elif is_node and not item.__abstract__:
                 self.node_types[item.__schema__.uid] = item
 
-    def load_module(self, module: types.ModuleType):
-        """Loads nodes and blueprints from a module."""
-        self.load_items(vars(module))
-
-    def load_defaults(self):
-        """Load the default packages."""
-        self.blueprint_types[node.Blueprint.__schema__.uid] = node.Blueprint
-        for module_name in _DEFAULT_MODULES:
-            self.load(module_name)
-
     def register(self, item_type: Type[node.Node]):
         """Register node or blueprint type to this library."""
         if issubclass(item_type, node.Blueprint):
@@ -67,7 +62,10 @@ class Library:
             raise TypeError(f'Invalid type to register: {item_type}.')
 
 
+DefaultLibrary = functools.partial(Library, modules=DEFAULT_MODULES)
+
+
 @functools.lru_cache()
 def get_default_library() -> Library:
     """Return the default library."""
-    return Library(autoload_defaults=True)
+    return DefaultLibrary()

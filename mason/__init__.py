@@ -25,6 +25,7 @@ dump_library = io.dump_library
 get_default_library = library.get_default_library
 inport = port.inport
 load_blueprint = io.load_blueprint
+load_config = io.load_config
 nodify = node.nodify
 outport = port.outport
 slot = callbacks.slot

@@ -1,5 +1,5 @@
 [run]
-source = mason_server
+source = mason
 
 [report]
 exclude_lines =

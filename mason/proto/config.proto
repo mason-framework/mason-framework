@@ -1,0 +1,13 @@
+syntax = 'proto3';
+
+package mason.config;
+
+message Library {
+  int32 version = 1;
+  repeated string modules = 2;
+  bool extends_default = 3;
+}
+
+message Config {
+  Library library = 1;
+}
