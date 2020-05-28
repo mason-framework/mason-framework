@@ -2,22 +2,31 @@
 
 import math
 import functools
+from typing import Any
+
 import mason
 
 math_node = functools.partial(mason.nodify, result_name='value')
 
+
 @math_node
-def add(a: float, b: float) -> float:  # pylint: disable=C0103
+def const(constant: Any) -> Any:
+    """Returns the constant value."""
+    return constant
+
+
+@math_node
+def add(a: float, b: float) -> float:
     """Return the result of adding a and b."""
     return a + b
 
 @math_node
-def sub(a: float, b: float) -> float:  # pylint: disable=C0103
+def sub(a: float, b: float) -> float:
     """Return the result of subtracting b from a."""
     return a - b
 
 @math_node
-def mult(a: float, b: float) -> float:  # pylint: disable=C0103
+def mult(a: float, b: float) -> float:
     """Return the product of multiplication of a and b."""
     return a * b
 
@@ -29,10 +38,10 @@ def div(dividend: float, divisor: float) -> float:
 @math_node
 def neg(number: float) -> float:
     """Return the negative of number."""
-    return number * -1
+    return -number
 
 @math_node
-def pow_(base: float, exponent: float = 2) -> float:  # pylint: disable=C0103
+def pow_(base: float, exponent: float = 2) -> float:
     """Return the exponentiation of base by exponent."""
     return base ** exponent
 

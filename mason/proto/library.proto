@@ -2,7 +2,7 @@ syntax = 'proto3';
 
 package mason.library;
 
-message Port {
+message PortSchema {
   string name = 1;
   string type = 2;
   string direction = 3;
@@ -12,15 +12,15 @@ message Port {
   string default = 7;
 }
 
-message Node {
+message NodeSchema {
   string group = 1;
   string name = 2;
-  repeated Port ports = 3;
+  repeated PortSchema ports = 3;
   repeated string signals = 4;
   repeated string slots = 5;
 }
 
-message Blueprint {
+message BlueprintSchema {
   string group = 1;
   string name = 2;
   repeated string signals = 4;
@@ -28,6 +28,6 @@ message Blueprint {
 }
 
 message Library {
-  repeated Node nodes = 1;
-  repeated Blueprint blueprints = 2;
+  repeated NodeSchema nodes = 1;
+  repeated BlueprintSchema blueprints = 2;
 }

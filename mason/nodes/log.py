@@ -1,6 +1,6 @@
 """Define logging nodes."""
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import mason
 
@@ -8,7 +8,7 @@ import mason
 class Print(mason.Node):
     """Prints out a message."""
 
-    message: Optional[Any] = None
+    message: Any
 
     @mason.slot
     async def print_(self):
@@ -20,7 +20,11 @@ class Log(mason.Node):
     """Logs out to the base python logger."""
 
     name: str = 'root'
-    level: str = 'INFO'
+    level: mason.inport(
+        str,
+        default='INFO',
+        choices=['DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL'],
+    )
     message: Any = None
 
     @mason.slot

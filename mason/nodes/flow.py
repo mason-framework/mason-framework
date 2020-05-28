@@ -6,42 +6,6 @@ from typing import Any, Sequence
 import mason
 
 
-@mason.nodify
-@mason.slot
-def return_(value: Any = None):
-    """Raises the value as a return."""
-    raise mason.exceptions.ReturnException(value)
-
-
-@mason.nodify
-@mason.slot
-def exit_(code: int = 0):
-    """Raises the exit exception."""
-    raise mason.exceptions.ExitException(code)
-
-
-class Input(mason.Node):
-    """Defines a node to extract an input variable from a flow."""
-
-    key: str
-    default: Any
-    value: mason.outport(Any)
-
-    def __init__(self, **args):
-        super().__init__(**args)
-
-        self.ports['value'].getter = self.get_value
-
-    async def get_value(self) -> Any:
-        """Extracts the value for the given output port from the context."""
-        key, default = await self.gather('key', 'default')
-        if not key:
-            key = self.name
-        context = self.get_context()
-        return context.args.get(key, default) if context else default
-
-
-
 class For(mason.Node):
     """Defines a For Loop node."""
 
@@ -218,3 +182,39 @@ async def sleep(seconds: float = 1, finished: mason.Signal = None):
     await asyncio.sleep(seconds)
     if finished:
         await finished.emit()
+
+
+class Get(mason.Node):
+    """Gets a valu from the execution context state."""
+
+    key: str
+    default: Any
+
+    value: mason.outport(Any)
+
+    def __init__(self, **props):
+        super().__init__(**props)
+        self.ports['value'].getter = self.get_value
+
+    async def get_value(self) -> Any:
+        """Returns the value from the context."""
+        key, default = await self.gather('key', 'default')
+        context = self.get_context()
+        if context:
+            return context.state.get(key or self.name, default)
+        return default
+
+
+class Set(mason.Node):
+    """Sets a value in the execution context state."""
+
+    key: str
+    value: Any
+
+    @mason.slot
+    async def store(self):
+        """Stores the value at the current time to the context state."""
+        key, value = await self.gather('key', 'value')
+        context = self.get_context()
+        if context:
+            context.state[key or self.name] = value

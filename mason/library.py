@@ -7,7 +7,7 @@ from typing import Any, Dict, Sequence, Union, Type
 from mason import node
 
 DEFAULT_MODULES = (
-    'mason.nodes.data',
+    'mason.nodes.blueprint',
     'mason.nodes.flow',
     'mason.nodes.log',
     'mason.nodes.logic',

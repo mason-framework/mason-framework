@@ -59,13 +59,13 @@ def _dump_port_schema(port_schema: port.Port) -> Dict[str, Any]:
         default = json.dumps(port_schema.default, default=_serialize)
     else:
         default = None
-    port_config = library_pb2.Port(name=port_schema.name,
-                                   type=port_schema.value_type,
-                                   direction=port_schema.direction.value,
-                                   sequence=port_schema.is_sequence,
-                                   map=port_schema.is_map,
-                                   choices=port_schema.choices,
-                                   default=default)
+    port_config = library_pb2.PortSchema(name=port_schema.name,
+                                         type=port_schema.value_type,
+                                         direction=port_schema.direction.value,
+                                         sequence=port_schema.is_sequence,
+                                         map=port_schema.is_map,
+                                         choices=port_schema.choices,
+                                         default=default)
     return json_format.MessageToDict(port_config)
 
 
@@ -74,20 +74,22 @@ def _dump_node_schema(node_schema: schema.Schema) -> Dict[str, Any]:
     ports = []
     for _, port_schema in sorted(node_schema.ports.items()):
         ports.append(_dump_port_schema(port_schema))
-    node_config = library_pb2.Node(name=node_schema.name,
-                                   group=node_schema.group,
-                                   ports=ports,
-                                   signals=list(sorted(node_schema.signals)),
-                                   slots=list(sorted(node_schema.slots)))
+    node_config = library_pb2.NodeSchema(
+        name=node_schema.name,
+        group=node_schema.group,
+        ports=ports,
+        signals=list(sorted(node_schema.signals)),
+        slots=list(sorted(node_schema.slots)))
     return json_format.MessageToDict(node_config)
 
 
 def _dump_blueprint_schema(bp_schema: schema.Schema) -> Dict[str, Any]:
     """Dumps the blueprint to config."""
-    bp_config = library_pb2.Blueprint(group=bp_schema.group,
-                                      name=bp_schema.name,
-                                      signals=list(sorted(bp_schema.signals)),
-                                      slots=list(sorted(bp_schema.slots)))
+    bp_config = library_pb2.BlueprintSchema(
+        group=bp_schema.group,
+        name=bp_schema.name,
+        signals=list(sorted(bp_schema.signals)),
+        slots=list(sorted(bp_schema.slots)))
     return json_format.MessageToDict(bp_config)
 
 
