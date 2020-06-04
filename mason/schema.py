@@ -42,7 +42,8 @@ def generate(model: Type['node.Node']) -> Schema:
         if name.startswith('_'):
             continue
 
-        if annotation is callbacks.Signal:
+        if annotation is callbacks.Signal or isinstance(annotation,
+                                                        callbacks.Signal):
             signals.add(name)
         elif isinstance(annotation, port.Port):
             annotation.name = name
@@ -53,7 +54,7 @@ def generate(model: Type['node.Node']) -> Schema:
 
     # extract slots from attributes
     for name, prop in inspect.getmembers(model):
-        if getattr(prop, 'is_slot', False):
+        if getattr(prop, '__slot__', False):
             slots.add(name)
 
     schema = Schema(group=group_name,

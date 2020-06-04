@@ -1,6 +1,7 @@
 """Define flow control nodes."""
 
 import asyncio
+import logging
 from typing import Any, Sequence
 
 import mason
@@ -104,26 +105,33 @@ class Enumerate(mason.Node):
             await self.emit('finished')
 
 
-class Merge(mason.Node):
+class WaitForAll(mason.Node):
     """Wait for all connections before continuing."""
 
-    merged: mason.Signal
+    finished: mason.Signal
 
     def __init__(self, **props):
         super().__init__(**props)
+        self._lock = asyncio.Lock()
         self._counter = 0
+        self._total = 0
 
     async def setup(self):
         """Initialize counter to 0."""
         self._counter = 0
+        self._total = self.slots['continue_'].connection_count
 
     @mason.slot
     async def continue_(self):
         """Emits finished when all tasks are complete."""
-        self._counter += 1
-        if self._counter == getattr(self.continue_, 'connection_count', 0):
-            await self.emit('merged')
-            self._counter = 0
+        is_finished = False
+        async with self._lock:
+            self._counter += 1
+            is_finished = self._counter == self._total
+
+            print('WaitForAll: counter:', self._counter, 'total:', self._total)
+        if is_finished:
+            await self.emit('finished')
 
 
 class While(mason.Node):
@@ -201,7 +209,7 @@ class Get(mason.Node):
         key, default = await self.gather('key', 'default')
         context = self.get_context()
         if context:
-            return context.state.get(key or self.name, default)
+            return context.state.get(key or self.label, default)
         return default
 
 
@@ -217,4 +225,40 @@ class Set(mason.Node):
         key, value = await self.gather('key', 'value')
         context = self.get_context()
         if context:
-            context.state[key or self.name] = value
+            context.state[key or self.label] = value
+
+
+class Print(mason.Node):
+    """Prints out a message."""
+
+    message: Any
+    printed: mason.Signal
+
+    @mason.slot
+    async def print_(self):
+        """Prints current message."""
+        print(await self.get('message'))
+        await self.emit('printed')
+
+
+class Log(mason.Node):
+    """Logs out to the base python logger."""
+
+    logger: str = 'root'
+    level: mason.inport(
+        str,
+        default='INFO',
+        choices=['DEBUG', 'INFO', 'WARN', 'ERROR', 'CRITICAL'],
+    )
+    message: Any = None
+    logged: mason.Signal
+
+    @mason.slot
+    async def log(self):
+        """Logs to the logger."""
+        logger_name, level, message = await self.gather(
+            'logger', 'level', 'message')
+        log_level = getattr(logging, level)
+        logger = logging.getLogger(logger_name)
+        logger.log(log_level, message)
+        await self.emit('logged')

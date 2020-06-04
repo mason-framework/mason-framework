@@ -1,6 +1,7 @@
 """Defines Node classes."""
 import asyncio
 import contextlib
+import functools
 import inspect
 import uuid
 from typing import Any, Callable, Dict, Optional, Set, Sequence, TypeVar, Union
@@ -12,9 +13,15 @@ from mason import callbacks
 from mason import exceptions
 from mason import port
 from mason import schema
+from mason import utils
+
+_library = utils.lazy_import('mason.library')
+_middleware = utils.lazy_import('mason.middlware')
+_events = utils.lazy_import('mason.events')
 
 if TYPE_CHECKING:
     from mason import library
+    from mason import middleware
 
 
 @attr.s(auto_attribs=True)
@@ -49,21 +56,22 @@ class Node(metaclass=NodeMeta):
                  *,
                  values: Dict[str, Any] = None,
                  library: Optional['library.Library'] = None,
-                 name: str = '',
                  nodes: Optional[Sequence['Node']] = None,
                  parent: Optional['Node'] = None,
-                 title: str = '',
-                 uid: str = ''):
+                 label: str = '',
+                 uid: str = '',
+                 middleware: Optional['middleware.Middleware'] = None):
         if type(self).__abstract__:
             raise NotImplementedError(f'{type(self).__name__} is abstract.')
 
-        self.name = name
         self.uid = uid or str(uuid.uuid4())
         self.ports: Dict[str, port.Port] = {}
         self.signals: Dict[str, callbacks.Signal] = {}
+        self.slots: Dict[str, callbacks.Slot] = {}
 
+        self._middleware = middleware
         self._library = library
-        self._title = title
+        self._label = label
         self._parent: Optional['Node'] = None
         self._nodes: Set['Node'] = set()
         self._execution_context: Optional[ExecutionContext] = None
@@ -77,9 +85,21 @@ class Node(metaclass=NodeMeta):
             for node in nodes:
                 node.parent = self
 
-    def __del__(self):
-        """Clears the parent / children hierarchy on deletion."""
-        self.parent = None
+    def __enter__(self):
+        self.resume()
+        return self
+
+    def __exit__(self, exc_type, exc_value, exc_traceback):
+        if exc_type:
+            self.dispatch(_events.NodeErrored(self))
+        else:
+            self.suspend()
+
+    def resume(self):
+        self.dispatch(_events.NodeEntered(self))
+
+    def suspend(self):
+        self.dispatch(_events.NodeExited(self))
 
     def __getitem__(self, key: str) -> Union['Node',
                                              port.Port,
@@ -99,13 +119,12 @@ class Node(metaclass=NodeMeta):
             return curr.ports[prop]
         if prop in curr.signals:
             return curr.signals[prop]
-        slots = curr.slots
-        if prop in slots:
-            return slots[prop]
-        nodes = curr.nodes
-        if prop in nodes:
-            return nodes[prop]
-        raise KeyError(key)
+        if prop in curr.slots:
+            return curr.slots[prop]
+        try:
+            return curr.nodes[prop]
+        except KeyError:
+            raise KeyError(key)
 
     def _init_schema(self,
                      my_schema: Optional[schema.Schema],
@@ -120,7 +139,11 @@ class Node(metaclass=NodeMeta):
                 self.ports[port_name] = schema_port.evolve(**overrides)
 
             for signal_name in my_schema.signals:
-                self.signals[signal_name] = callbacks.Signal()
+                self.signals[signal_name] = callbacks.Signal(sender=self)
+
+            for slot_name in my_schema.slots:
+                method = getattr(self, slot_name)
+                self.slots[slot_name] = callbacks.Slot(method, receiver=self)
 
     def connect(self, source_path: str, target_path: str):
         """Convenience method to create a connection between the children."""
@@ -132,8 +155,6 @@ class Node(metaclass=NodeMeta):
         """Creates a new child node for this node instance."""
         if isinstance(node_type, str):
             node_type = self.library.node_types[node_type]
-        if 'name' not in props:
-            props['name'] = self.generate_unique_name(node_type)
         return node_type(parent=self, **props)
 
     def delete(self):
@@ -146,6 +167,12 @@ class Node(metaclass=NodeMeta):
         source = self[source_path]
         target = self[target_path] if target_path else None
         source.disconnect(target)
+
+    def dispatch(self, event: 'events.Event'):
+        """Dispatches an event through the middleware."""
+        mid = self.middleware
+        if mid:
+            mid.dispatch(event)
 
     @contextlib.contextmanager
     def execution_context(self,
@@ -164,26 +191,14 @@ class Node(metaclass=NodeMeta):
         """Helper function to emit a signal by name."""
         await self.signals[signal_name].emit(*args)
 
-    async def gather(self, *names: str) -> Sequence[Any]:
+    async def gather(self, *port_names: str) -> Sequence[Any]:
         """Gathers multiple port values."""
-        tasks = (self.ports[name].get() for name in names)
+        tasks = (self.ports[port_name].get() for port_name in port_names)
         return await asyncio.gather(*tasks)
 
-    def generate_unique_name(self, node_type: Type['Node']) -> str:
-        """Returns a unique name for a given base in this container."""
-        my_schema = node_type.__schema__
-        base = my_schema.name.lower() if my_schema else 'node'
-        count = 1
-        while True:
-            name = f'{base}-{count:02}'
-            child = self.find_child(name)
-            if not child:
-                return name
-            count += 1
-
-    async def get(self, name: str) -> Any:
-        """Returns the port value for the given name."""
-        return await self.ports[name].get()
+    async def get(self, port_name: str) -> Any:
+        """Returns the port value for the given port name."""
+        return await self.ports[port_name].get()
 
     def get_context(self) -> Optional[ExecutionContext]:
         """Returns the context for this node."""
@@ -205,33 +220,45 @@ class Node(metaclass=NodeMeta):
 
     def find_child(
             self,
-            name: str,
+            uid: str,
             recursive: bool = False,
             node_type: Optional[Type['Node']] = None) -> Optional['Node']:
-        """Returns a child by its name."""
+        """Returns a child by its id."""
         for child in self._nodes:
             if ((not node_type or isinstance(child, node_type)) and
-                    child.name == name):
+                    child.uid == uid):
                 return child
             if not recursive:
                 continue
-            found = child.find_child(name, recursive=True, node_type=node_type)
+            found = child.find_child(uid, recursive=True, node_type=node_type)
             if found:
                 return found
         return None
 
     @property
+    @functools.lru_cache()
+    def middleware(self) -> Optional['middleware.Middleware']:
+        curr = self
+        # pylint: disable=protected-access
+        while curr:
+            if curr._middleware:
+                return curr._middleware
+            curr = curr.parent
+        # pylint: disable=protected-access
+        return None
+
+    @property
+    @functools.lru_cache()
     def library(self) -> 'library.Library':
         """Traverse up the hierarchy to find the closest library."""
         curr = self
         # pylint: disable=protected-access
         while curr and not curr._library:
+            if curr._library:
+                return curr._library
             curr = curr.parent
-        if not curr:
-            from mason import library as _lib  # pylint: disable=import-outside-toplevel
-            return _lib.get_default_library()
         # pylint: disable=protected-access
-        return curr._library
+        return _library.get_default_library()
 
     @property
     def blueprint(self) -> Optional['Blueprint']:
@@ -254,7 +281,7 @@ class Node(metaclass=NodeMeta):
     @property
     def nodes(self) -> Dict[str, 'Node']:
         """Returns the children for this node."""
-        return {n.name: n for n in self._nodes}
+        return {n.uid: n for n in self._nodes}
 
     @parent.setter
     def parent(self, parent: Optional['Node']):
@@ -271,19 +298,10 @@ class Node(metaclass=NodeMeta):
         """Setup this node before execution."""
 
     @property
-    def slots(self) -> Dict[str, Callable[..., Any]]:
-        """Returns a mapping of slots for this node."""
-        my_schema = type(self).__schema__
-        if my_schema:
-            return {slot_name: getattr(self, slot_name)
-                    for slot_name in my_schema.slots}
-        return {}
-
-    @property
-    def title(self) -> str:
-        """Generates a title for this node."""
-        return self._title or (
-            self.name
+    def label(self) -> str:
+        """Generates a label for this node."""
+        return self._label or (
+            self.uid
             .title()
             .replace('_', ' ')
             .replace('-', ' ')
@@ -302,32 +320,60 @@ class Node(metaclass=NodeMeta):
 class Blueprint(Node):
     """Defines a base blueprint node."""
 
-    triggered: callbacks.Signal
+    on_setup: callbacks.Signal
+    on_run: callbacks.Signal
+    on_teardown: callbacks.Signal
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        del args  # Unused.
+
+    def resume(self):
+        pass
+
+    def suspend(self):
+        pass
 
     async def __call__(self,
                        initial_state: Dict[str, Any] = None,
                        **args: Any) -> Any:
         """Executes the blueprint."""
         with self.execution_context(initial_state, args) as context:
-            for node in self.walk_nodes():
-                await node.setup()
+            self.dispatch(_events.BlueprintStarted(self))
+            await self.setup()
             try:
-                await self.emit('triggered')
-            except exceptions.ReturnException as exc:
-                results = exc.value or context.results
-            except exceptions.ExitException as exc:
-                if exc.code != 0:
-                    raise
-            else:
-                results = context.results
+                return await self.run(context)
             finally:
-                for node in self.walk_nodes():
-                    await node.teardown()
-            return results if results else None
+                await self.teardown()
+                self.dispatch(_events.BlueprintFinished(self))
+
+    async def setup(self):
+        """Sets up the nodes for this blueprint."""
+        for node in self.walk_nodes():
+            await node.setup()
+        await self.emit('on_setup')
+
+    async def run(self, context: ExecutionContext) -> Any:
+        """Runs the body of the blueprint."""
+        try:
+            await self.emit('on_run')
+        except exceptions.ReturnException as exc:
+            return exc.value
+        except exceptions.ExitException as exc:
+            if exc.code != 0:
+                raise
+        return context.results if context.results else None
+
+    async def teardown(self):
+        await self.emit('on_teardown')
+        for node in self.walk_nodes():
+            await node.teardown()
 
 
 def nodify(*args,
-           name: str = '',
+           type_name: str = '',
            result_name: str = 'result',
            node_type: Optional[Type[Node]] = None):
     """Decorator for generating a node type from a function."""
@@ -378,9 +424,8 @@ def nodify(*args,
                 return await result
             return result
 
-        if hasattr(func, 'is_slot'):
-            setattr(bound_func, 'is_slot', func.is_slot)
-            setattr(bound_func, 'connection_count', 0)
+        if hasattr(func, '__slot__'):
+            setattr(bound_func, '__slot__', func.__slot__)
 
         if sig.return_annotation is not inspect.Parameter.empty:
             annotations[result_name] = port.Port(
@@ -396,7 +441,7 @@ def nodify(*args,
 
         node_base = (node_type or Node,)
         node_group = inspect.getmodule(func).__name__.split('.')[-1]
-        node_clsname = name or func.__name__.title().replace('_', '')
+        node_clsname = type_name or func.__name__.title().replace('_', '')
         node_class = type(node_clsname, node_base, node_attrs)
         node_class.__schema__.group = node_group
         func.__node__ = node_class

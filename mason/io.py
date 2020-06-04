@@ -2,7 +2,7 @@
 import enum
 import functools
 import json
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Union
 
 from google.protobuf import json_format
 import yaml
@@ -34,18 +34,22 @@ def _create_node(config: blueprint_pb2.Node,
     """Return new node from config."""
     new_node = parent.create(config.type,
                              uid=config.uid,
-                             name=config.name,
-                             title=config.title)
+                             label=config.label)
     for node_config in config.nodes:
         _create_node(node_config, new_node)
+    for proto_port in config.ports:
+        if proto_port.value:
+            value = json.loads(proto_port.value)
+            new_node.ports[proto_port.name].local_value = value
     return new_node
 
 
 def _create_blueprint(config: blueprint_pb2.Blueprint,
-                      library: _lib.Library) -> node.Blueprint:
+                      library: _lib.Library,
+                      **blueprint_options) -> node.Blueprint:
     """Return new blueprint from config."""
     bp_type = library.blueprint_types.get(config.type, node.Blueprint)
-    bp = bp_type(name=config.name, library=library)
+    bp = bp_type(label=config.label, library=library, **blueprint_options)
     for node_config in config.nodes:
         _create_node(node_config, bp)
     for connection in config.connections:
@@ -132,8 +136,25 @@ def load_config(filename: str):
 
 def load_blueprint(
         filename: str,
-        library: Optional[_lib.Library] = None) -> node.Blueprint:
+        library: Optional[_lib.Library] = None,
+        **blueprint_options) -> node.Blueprint:
     """Loads a blueprint file from disk."""
     data = _load_data(filename)
     bp_config = json_format.ParseDict(data, blueprint_pb2.Blueprint())
-    return _create_blueprint(bp_config, library or _lib.get_default_library())
+    return _create_blueprint(bp_config,
+                             library or _lib.get_default_library(),
+                             **blueprint_options)
+
+
+def parse_blueprint(
+        json_data: Union[str, Dict[str, Any]],
+        library: Optional[_lib.Library] = None,
+        **blueprint_options) -> node.Blueprint:
+    """Parses JSON blueprint data."""
+    if isinstance(json_data, str):
+        bp_config = json_format.Parse(json_data, blueprint_pb2.Blueprint())
+    else:
+        bp_config = json_format.ParseDict(json_data, blueprint_pb2.Blueprint())
+    return _create_blueprint(bp_config,
+                             library or _lib.get_default_library(),
+                             **blueprint_options)

@@ -2,18 +2,41 @@
 
 import asyncio
 import inspect
+import logging
 import types
-from typing import Any, Callable, Optional, Set, Union, TypeVar
+from typing import Any, Callable, ContextManager, Optional, Set, Union, TypeVar
 import weakref
 
 CallbackType = Union[types.MethodType, Callable[..., Any]]
 SlotType = TypeVar('SlotType')
 
+_LOG = logging.getLogger(__name__)
+
+
+class Slot:
+    """Slot mapper."""
+
+    def __init__(
+            self,
+            callback: CallbackType,
+            receiver: ContextManager):
+        self.callback = callback
+        self.receiver = receiver
+        self.connection_count = 0
+
+    def __str__(self):
+        return f'<Slot({self.callback})>'
+
+    async def __call__(self, *args, **kwargs) -> Any:
+        """Calls the underlying function for this slot."""
+        with self.receiver:
+            return await self.callback(*args, **kwargs)
+
 
 class Signal:
     """Signal class type."""
 
-    def __init__(self, *annotations):
+    def __init__(self, *annotations, sender: ContextManager):
         params = []
         for i, annotation in enumerate(annotations):
             params.append(
@@ -23,6 +46,8 @@ class Signal:
                     annotation=annotation
                 )
             )
+
+        self.sender = sender
         self._annotations = annotations
         self._signature = inspect.Signature(params)
         self._slot_refs = set()
@@ -72,17 +97,18 @@ class Signal:
         raise TypeError('Failed to create connection.  Expected'
                         f'{self._annotations} but received {signature}.')
 
-    def connect(self, *funcs: CallbackType) -> None:
+    def connect(self, *slots: CallbackType) -> None:
         """Creates a connection by validating and adding the slot to the ref."""
-        for func in funcs:
-            self._validate_slot_signature(func)
-            if getattr(func, 'is_slot', False) is True:
-                func.__dict__.setdefault('connection_count', 0)
-                func.__dict__['connection_count'] += 1
-            if inspect.ismethod(func):
-                ref = weakref.WeakMethod(func)
+        for slot_ in slots:
+            if isinstance(slot_, Slot):
+                slot_.connection_count += 1
+                self._validate_slot_signature(slot_.callback)
             else:
-                ref = weakref.ref(func)
+                self._validate_slot_signature(slot_)
+            if inspect.ismethod(slot_):
+                ref = weakref.WeakMethod(slot_)
+            else:
+                ref = weakref.ref(slot_)
             self._slot_refs.add(ref)
 
     def disconnect(self, *funcs: Optional[CallbackType]) -> None:
@@ -90,10 +116,9 @@ class Signal:
         ignore = [None] + list(funcs)
         new_refs = set()
         for ref in self._slot_refs:
-            func = ref()
-            if func not in ignore:
-                if getattr(func, 'is_slot', False) is True:
-                    func.__dict__['connection_count'] -= 1
+            slot_ = ref()
+            if slot_ not in ignore:
+                slot_.connection_count -= 1
                 continue
             new_refs.add(ref)
         self._slot_refs = new_refs
@@ -107,9 +132,21 @@ class Signal:
         Raises:
             TypeError if the provided arguments do not match the signature.
         """
-        if self._signature.bind(*args):
-            tasks = (func(*args) for func in self._get_active_slots())
+        if not self._signature.bind(*args):
+            return
+        slots = self._get_active_slots()
+        if not slots:
+            return
+
+        tasks = []
+        for slot_ in slots:
+            tasks.append(slot_(*args))
+
+        try:
+            self.sender.suspend()
             await asyncio.gather(*tasks)
+        finally:
+            self.sender.resume()
 
     @property
     def is_empty(self) -> bool:
@@ -120,6 +157,5 @@ class Signal:
 
 def slot(func: SlotType) -> SlotType:
     """Decorate the function as a slot."""
-    setattr(func, 'is_slot', True)
-    setattr(func, 'connection_count', 0)
+    func.__slot__ = True
     return func

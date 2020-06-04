@@ -9,7 +9,6 @@ from mason import node
 DEFAULT_MODULES = (
     'mason.nodes.blueprint',
     'mason.nodes.flow',
-    'mason.nodes.log',
     'mason.nodes.logic',
     'mason.nodes.math',
 )

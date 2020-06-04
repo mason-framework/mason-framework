@@ -34,38 +34,60 @@ class Input(mason.Node):
     async def get_value(self) -> Any:
         """Extracts the value for the given output port from the context."""
         key, default = await self.gather('key', 'default')
-        if not key:
-            key = self.name
+        if key is None:
+            key = self.label
         context = self.get_context()
         return context.args.get(key, default) if context else default
 
 
-class TriggerEvent(mason.Node):
+class Output(mason.Node):
+    """Defines a node to add output values to the context."""
+
+    key: str
+    value: Any
+
+    assigned: mason.Signal
+
+    @mason.slot
+    async def assign(self):
+        """Assigns the value for this node to the context."""
+        key, value = await self.gather('key', 'value')
+        if key is None:
+            key = self.label
+        context = self.get_context()
+        context.results[key] = value
+        await self.emit('assigned')
+
+
+class Emit(mason.Node):
     """Emits a blueprint signal."""
 
     event: str
 
     @mason.slot
-    async def trigger(self):
+    async def emit(self):
         """Emits the signal through the blueprint for this node."""
         ev = await self.get('event')
-        self.blueprint.emit(ev)
+        await self.blueprint.emit(ev)
 
 
-class OnEvent(mason.Node):
+class On(mason.Node):
     """Triggers when a blueprint signal is emitted."""
 
-    event: str = 'triggered'
+    event: str = 'on_run'
     triggered: mason.Signal
 
     async def setup(self):
         ev = await self.get('event')
-        self.blueprint.connect(ev, self.run)
+        self.blueprint.signals[ev].connect(self.run)
 
     async def run(self):
         """Triggers when the blueprints signal is emitted."""
-        self.triggered.emit()
+        # Because this is not a slot, we'll want to use its own
+        # context manually here.
+        with self:
+            await self.emit('triggered')
 
     async def teardown(self):
         ev = await self.get('event')
-        self.blueprint.disconnect(ev, self.run)
+        self.blueprint.signals[ev].disconnect(self.run)
