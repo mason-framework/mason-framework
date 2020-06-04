@@ -145,6 +145,10 @@ class Node(metaclass=NodeMeta):
                 method = getattr(self, slot_name)
                 self.slots[slot_name] = callbacks.Slot(method, receiver=self)
 
+            for key, item in type(self).__dict__.items():
+                if hasattr(item, '__port_getter__'):
+                    self.ports[item.__port_getter__].getter = getattr(self, key)
+
     def connect(self, source_path: str, target_path: str):
         """Convenience method to create a connection between the children."""
         source = self[source_path]

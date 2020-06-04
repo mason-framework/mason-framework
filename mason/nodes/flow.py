@@ -200,16 +200,13 @@ class Get(mason.Node):
 
     value: mason.outport(Any)
 
-    def __init__(self, **props):
-        super().__init__(**props)
-        self.ports['value'].getter = self.get_value
-
+    @mason.getter('value')
     async def get_value(self) -> Any:
         """Returns the value from the context."""
         key, default = await self.gather('key', 'default')
         context = self.get_context()
         if context:
-            return context.state.get(key or self.label, default)
+            return context.state.get(key or self._label or self.uid, default)
         return default
 
 

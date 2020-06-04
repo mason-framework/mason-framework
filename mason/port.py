@@ -4,11 +4,13 @@ import enum
 import functools
 import weakref
 from collections import abc
-from typing import Any, Awaitable, Callable, Dict, Optional, Set, Sequence
+from typing import Any, Awaitable, Callable, Dict, Optional, Set
+from typing import Sequence, TypeVar
 from typing import Union
 
 from mason import exceptions
 
+T = TypeVar('T')
 _CHOICES_TYPE = Optional[Union[Dict[str, Any], Sequence[Any]]]
 _GETTER_TYPE = Callable[[], Awaitable[Any]]
 
@@ -28,16 +30,14 @@ class Port:
                  choices: _CHOICES_TYPE = None,
                  default: Any = None,
                  direction: PortDirection = PortDirection.Input,
-                 getter: Optional[_GETTER_TYPE] = None,
                  name: str = '',
                  title: str = '',
                  value: Any = None):
-
         self.annotation = annotation
         self.name = name
         self.default = default
         self.direction = direction
-        self.getter = getter
+        self.getter: Optional[_GETTER_TYPE] = None
 
         origin = getattr(annotation, '__origin__', None)
 
@@ -105,12 +105,13 @@ class Port:
             name=self.name,
             default=self.default,
             direction=self.direction,
-            getter=self.getter,
             value=self._local_value,
             title=self._title
         )
         props.update(overrides)
-        return Port(**props)
+        new_port = Port(**props)
+        new_port.getter = self.getter
+        return new_port
 
     def disconnect(self, *ports: 'Port') -> None:
         """Disconnects all ports, or the port specified as other."""
@@ -179,3 +180,11 @@ class Port:
 
 inport = functools.partial(Port, direction=PortDirection.Input)
 outport = functools.partial(Port, direction=PortDirection.Output)
+
+
+def getter(port_name: str) -> Callable[[T], T]:
+    """Marks this function as a getter for a port."""
+    def inner(func: T) -> T:
+        func.__port_getter__ = port_name
+        return func
+    return inner

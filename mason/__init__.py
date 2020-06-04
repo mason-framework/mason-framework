@@ -8,6 +8,7 @@ from mason import library
 from mason import io
 from mason import node
 from mason import port
+from mason import storage
 
 try:
     from importlib import metadata  # Python 3.8+
@@ -24,9 +25,11 @@ Middleware = middleware.Middleware
 Node = node.Node
 Port = port.Port
 PortDirection = port.PortDirection
+Storage = storage.Storage
 Signal = callbacks.Signal
 
 dump_library = io.dump_library
+getter = port.getter
 get_default_library = library.get_default_library
 inport = port.inport
 load_blueprint = io.load_blueprint

@@ -1,13 +1,13 @@
 {
-  "name": "pythagorean",
+  "label": "pythagorean",
   "nodes": [
-    {"name": "a", "type": "flow.Input"},
-    {"name": "b", "type": "flow.Input"},
-    {"name": "a2", "type": "math.Pow"},
-    {"name": "b2", "type": "math.Pow"},
-    {"name": "add", "type": "math.Add"},
-    {"name": "sqrt", "type": "math.Sqrt"},
-    {"name": "c", "type": "flow.Return"}
+    {"uid": "a", "type": "blueprint.Input"},
+    {"uid": "b", "type": "blueprint.Input"},
+    {"uid": "a2", "type": "math.Pow"},
+    {"uid": "b2", "type": "math.Pow"},
+    {"uid": "add", "type": "math.Add"},
+    {"uid": "sqrt", "type": "math.Sqrt"},
+    {"uid": "c", "type": "blueprint.Return"}
   ],
   "connections": [
     {"source": "a.value", "target": "a2.base"},
@@ -16,6 +16,6 @@
     {"source": "b2.value", "target": "add.b"},
     {"source": "add.value", "target": "sqrt.number"},
     {"source": "sqrt.value", "target": "c.value"},
-    {"source": "__self__.triggered", "target": "c.return_"}
+    {"source": "on_run", "target": "c.return_"}
   ]
 }

@@ -26,16 +26,12 @@ class Input(mason.Node):
     default: Any
     value: mason.outport(Any)
 
-    def __init__(self, **args):
-        super().__init__(**args)
-
-        self.ports['value'].getter = self.get_value
-
+    @mason.getter('value')
     async def get_value(self) -> Any:
         """Extracts the value for the given output port from the context."""
         key, default = await self.gather('key', 'default')
         if key is None:
-            key = self.label
+            key = self._label or self.uid
         context = self.get_context()
         return context.args.get(key, default) if context else default
 
@@ -53,7 +49,7 @@ class Output(mason.Node):
         """Assigns the value for this node to the context."""
         key, value = await self.gather('key', 'value')
         if key is None:
-            key = self.label
+            key = self._label or self.uid
         context = self.get_context()
         context.results[key] = value
         await self.emit('assigned')
