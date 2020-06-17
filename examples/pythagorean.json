@@ -1,44 +1,48 @@
 {
-  "nodes": {
-    "a": {
-      "type": "blueprint.Input"
-    },
-    "b": {
-      "type": "blueprint.Input"
-    },
-    "a^2": {
-      "type": "math.Pow",
+  "a": {
+    "blueprint.Input": {}
+  },
+  "b": {
+    "blueprint.Input": {}
+  },
+  "a^2": {
+    "math.Pow": {
       "connect": {
         "base": ["a.value"]
       }
-    },
-    "b^2": {
-      "type": "math.Pow",
+    }
+  },
+  "b^2": {
+    "math.Pow": {
       "connect": {
         "base": ["b.value"]
       }
-    },
-    "a^2+b^2": {
-      "type": "math.Add",
+    }
+  },
+  "a^2+b^2": {
+    "math.Add": {
       "connect": {
         "a": ["a^2.value"],
         "b": ["b^2.value"]
       }
-    },
-    "sqrt(a^2+b^2)": {
-      "type": "math.Sqrt",
+    }
+  },
+  "sqrt(a^2+b^2)": {
+    "math.Sqrt": {
       "connect": {
         "number": ["a^2+b^2.value"]
       }
-    },
-    "c": {
-      "type": "blueprint.Return",
+    }
+  },
+  "c": {
+    "blueprint.Return": {
       "connect": {
         "value": ["sqrt(a^2+b^2).value"]
       }
-    },
-    "on_run": {
-      "type": "blueprint.On",
+    }
+  },
+  "on_run": {
+    "blueprint.On": {
       "connect": {
         "triggered": ["c.return_"]
       }

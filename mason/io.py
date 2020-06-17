@@ -40,7 +40,7 @@ _JSON_EXTENSIONS = ('.json',)
 _YAML_EXTENSIONS = ('.yaml', '.yml')
 
 
-def _convert_node_to_proto(node_inst: node.Node) -> blueprint_pb2.Node:
+def _dump_node(node_inst: node.Node) -> Dict[str, Any]:
     """Converts a node instance to a protobuf."""
     nodes = {}
     for child_uid, child_node in node_inst.nodes.items():
@@ -70,27 +70,25 @@ def _convert_node_to_proto(node_inst: node.Node) -> blueprint_pb2.Node:
             connections[signal_name] = conn.targets  # pylint: disable=no-member
 
     node_schema = node_inst.__schema__
-    return blueprint_pb2.Node(
-        label=node_inst._label,  # pylint: disable=protected-access
-        type=f'{node_schema.group}.{node_schema.name}',
-        nodes=nodes,
-        set=values,
-        connect=connections,
-    )
+    props = {}
+    if nodes:
+        props['nodes'] = nodes
+    if node_inst._label:
+        props['label'] = node_inst._label
+    if values:
+        props['set'] = values
+    if connections:
+        props['connect'] = connections
+    return {f'{node_schema.group}.{node_schema.name}': props}
 
 
-def _convert_blueprint_to_proto(
-        blueprint: node.Blueprint) -> blueprint_pb2.Blueprint:
+def _dump_blueprint(
+        blueprint: node.Blueprint) -> Dict[str, Any]:
     """Converts a blueprint instance to a protobuf."""
     nodes = {}
     for node_uid, node_ in blueprint.nodes.items():
-        nodes[node_uid] = _convert_node_to_proto(node_)
-    bp_proto = blueprint_pb2.Blueprint(
-        label=blueprint._label,  # pylint: disable=protected-access
-        version=blueprint.version if blueprint.version != '0.0.0' else None,
-        nodes=nodes,
-    )
-    return bp_proto
+        nodes[node_uid] = _dump_node(node_)
+    return nodes
 
 
 def _convert_library_to_proto(library: _lib.Library) -> library_pb2.Library:
@@ -147,21 +145,20 @@ def _convert_port_schema_to_proto(
     )
 
 
-def _convert_proto_to_blueprint(
-        proto: blueprint_pb2.Blueprint,
+def _parse_blueprint(
+        data: Dict[str, Any],
         library: Optional[_lib.Library] = None,
         **bp_options) -> node.Blueprint:
     """Converts a protobuf blueprint to a blueprint instance."""
     library = library or _lib.get_default_library()
-    bp_type = library.blueprint_types.get(proto.type, node.Blueprint)
+    bp_typename = data.pop('@@type', '')
+    bp_type = library.blueprint_types.get(bp_typename, node.Blueprint)
     bp = bp_type(
-        label=proto.label,
         library=library,
-        version=proto.version or '0.0.0',
         **bp_options)
     connections = []
-    for uid, node_proto in proto.nodes.items():
-        _, node_connections = _convert_proto_to_node(uid, node_proto, bp)
+    for uid, node_info in data.items():
+        _, node_connections = _parse_node(uid, node_info, bp)
         connections.extend(node_connections)
     for source, targets in connections:
         for target in targets:
@@ -169,37 +166,38 @@ def _convert_proto_to_blueprint(
     return bp
 
 
-def _convert_proto_to_node(
+def _parse_node(
         uid: str,
-        proto: blueprint_pb2.Node,
+        node_info: Dict[str, Any],
         parent: node.Node) -> Tuple[node.Node, List[Tuple[str, str]]]:
     """Converts a protobuf node to a node instance."""
-    new_node = parent.create(proto.type, uid=uid, label=proto.label)
-    node_connections = []
+    for node_type in node_info:
+        type_info = node_info[node_type] or {}
+        new_node = parent.create(node_type,
+                                 uid=uid,
+                                 label=type_info.get('label'))
+        node_connections = []
 
-    for child_uid, child_proto in proto.nodes.items():
-        _, child_connections = _convert_proto_to_node(child_uid,
-                                                      child_proto,
-                                                      new_node)
-        node_connections.extend(child_connections)
+        for child_uid, child_info in type_info.get('nodes', {}).items():
+            _, child_connections = _parse_node(child_uid, child_info, new_node)
+            node_connections.extend(child_connections)
 
-    for port_name, value_json in proto.set.items():
-        try:
-            value = json.loads(value_json)
-        except json.JSONDecodeError:
-            value = value_json
-        new_node.ports[port_name].local_value = value
+        for port_name, value_json in type_info.get('set', {}).items():
+            try:
+                value = json.loads(value_json)
+            except json.JSONDecodeError:
+                value = value_json
+            new_node.ports[port_name].local_value = value
 
-    for node_source, targets in proto.connect.items():
-        node_connections.append((f'{uid}.{node_source}', targets))
+        for node_source, targets in type_info.get('connect', {}).items():
+            node_connections.append((f'{uid}.{node_source}', targets))
 
-    return new_node, node_connections
+        return new_node, node_connections
 
 
 def dump_blueprint(blueprint: node.Blueprint) -> Dict[str, Any]:
     """Dumps a blueprint to data."""
-    bp_proto = _convert_blueprint_to_proto(blueprint)
-    return json_format.MessageToDict(bp_proto)
+    return _dump_blueprint(blueprint)
 
 
 def dump_data(data: Any, data_format: str = DEFAULT_FORMAT) -> str:
@@ -247,8 +245,7 @@ def parse_blueprint(data: Dict[str, Any],
                     library: Optional[_lib.Library] = None,
                     **bp_options) -> node.Blueprint:
     """Parses a blueprint from data."""
-    bp_proto = json_format.ParseDict(data, blueprint_pb2.Blueprint())
-    return _convert_proto_to_blueprint(bp_proto, library, **bp_options)
+    return _parse_blueprint(data, library, **bp_options)
 
 
 def parse_data(content: str, data_format: str = DEFAULT_FORMAT) -> Any:

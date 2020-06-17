@@ -1,34 +1,32 @@
-label: pythagorean
-nodes:
-  a:
-    type: blueprint.Input
+a:
+  blueprint.Input:
     connect:
       value: [a^2.base]
-  b:
-    type: blueprint.Input
+b:
+  blueprint.Input:
     connect:
       value: [b^2.base]
-  a^2:
-    type: math.Pow
+a^2:
+  math.Pow:
     connect:
       value: [a^2+b^2.a]
-  b^2:
-    type: math.Pow
+b^2:
+  math.Pow:
     connect:
       value: [a^2+b^2.b]
-  a^2+b^2:
-    type: math.Add
+a^2+b^2:
+  math.Add:
     connect:
       value: [sqrt(a^2+b^2).number]
-  sqrt(a^2+b^2):
-    type: math.Sqrt
+sqrt(a^2+b^2):
+  math.Sqrt:
     connect:
       value: [c.value]
-  on_run:
-    type: blueprint.On
+on_run:
+  blueprint.On:
     set:
       event: on_run
     connect:
       triggered: [c.return_]
-  c:
-    type: blueprint.Return
+c:
+  blueprint.Return:
