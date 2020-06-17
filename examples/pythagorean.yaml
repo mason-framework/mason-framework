@@ -1,17 +1,34 @@
-uid: pythagorean
+label: pythagorean
 nodes:
-  - {uid: a, type: blueprint.Input}
-  - {uid: b, type: blueprint.Input}
-  - {uid: a2, type: math.Pow}
-  - {uid: b2, type: math.Pow}
-  - {uid: add, type: math.Add}
-  - {uid: sqrt, type: math.Sqrt}
-  - {uid: c, type: blueprint.Return}
-connections:
-  - {source: a.value, target: a2.base}
-  - {source: b.value, target: b2.base}
-  - {source: a2.value, target: add.a}
-  - {source: b2.value, target: add.b}
-  - {source: add.value, target: sqrt.number}
-  - {source: sqrt.value, target: c.value}
-  - {source: on_run, target: c.return_}
+  a:
+    type: blueprint.Input
+    connect:
+      value: [a^2.base]
+  b:
+    type: blueprint.Input
+    connect:
+      value: [b^2.base]
+  a^2:
+    type: math.Pow
+    connect:
+      value: [a^2+b^2.a]
+  b^2:
+    type: math.Pow
+    connect:
+      value: [a^2+b^2.b]
+  a^2+b^2:
+    type: math.Add
+    connect:
+      value: [sqrt(a^2+b^2).number]
+  sqrt(a^2+b^2):
+    type: math.Sqrt
+    connect:
+      value: [c.value]
+  on_run:
+    type: blueprint.On
+    set:
+      event: on_run
+    connect:
+      triggered: [c.return_]
+  c:
+    type: blueprint.Return

@@ -32,11 +32,18 @@ class Slot:
         with self.receiver:
             return await self.callback(*args, **kwargs)
 
+    @property
+    def uid(self) -> str:
+        """Returns the unique id of this slot."""
+        receiver_uid = getattr(self.receiver, 'uid', '<< unknown >>')
+        name = self.callback.__name__
+        return f'{receiver_uid}.{name}'
+
 
 class Signal:
     """Signal class type."""
 
-    def __init__(self, *annotations, sender: ContextManager):
+    def __init__(self, *annotations, sender: ContextManager = None):
         params = []
         for i, annotation in enumerate(annotations):
             params.append(
@@ -153,6 +160,11 @@ class Signal:
         """Cleans up dead references and returns if any active slots remain."""
         self._cleanup_dead_refs()
         return not self._slot_refs
+
+    @property
+    def slots(self) -> Set[CallbackType]:
+        """Returns the active slots for this signal."""
+        return self._get_active_slots()
 
 
 def slot(func: SlotType) -> SlotType:

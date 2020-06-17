@@ -5,43 +5,67 @@ import os
 from typing import Collection, Sequence
 
 import attr
-from mason import io
-from mason import node
 from mason import storage
+from mason import exceptions
 
 
 @attr.s(auto_attribs=True)
-class FilesystemDriver(storage.StorageDriver):
+class FileSystem(storage.StorageDriver):
     """Implements filesystem storage."""
 
-    rootpath: str
-    default_ext: str = '.yaml'
-    supported_types: Sequence[str] = ('.yaml', '.json')
+    rootpath: str = ''
 
-    def _walk_blueprints(self) -> Collection[str]:
-        for rootpath, _, files in os.walk(self.rootpath):
+    def _walk_items(self) -> Collection[storage.StorageItem]:
+        """Traverses the filesystem for blueprints."""
+        for rootpath, folders, files in os.walk(self.rootpath):
             basepath = os.path.relpath(rootpath, self.rootpath)
             if basepath == '.':
                 basepath = ''
 
+            for folder in folders:
+                yield storage.StorageItem(
+                    path=basepath,
+                    name=folder,
+                    type='group'
+                )
+
             for filename in files:
                 basename, ext = os.path.splitext(filename)
-                if ext in self.supported_types:
-                    yield os.path.join(
-                        basepath,
-                        basename if ext == self.default_ext else filename)
+                data_format = ext.strip('.')
+                name = (
+                    basename
+                    if data_format == self.default_format
+                    else filename)
+                if data_format in self.valid_formats and '.' not in basename:
+                    yield storage.StorageItem(
+                        path=basepath,
+                        name=name,
+                        type='blueprint'
+                    )
 
-    async def load_blueprint(self, path: str) -> node.Blueprint:
-        filename = os.path.join(self.rootpath, path)
-        if not os.path.isfile(filename):
-            filename += self.default_ext
-        return io.load_blueprint(filename)
+    async def ensure_exists(self, group: str):
+        """Ensures a directory path exists."""
+        fullpath = os.path.join(self.rootpath, group)
+        if not os.path.exists(fullpath):
+            os.makedirs(fullpath)
 
-    async def save_blueprint(self, path: str, blueprint: node.Blueprint):
-        filename = os.path.join(self.rootpath, path)
-        content = io.dump_blueprint(blueprint)
-        with open(filename, 'w') as f:
-            f.write(content)
+    async def read(self, fullpath: str) -> str:
+        """Reads the content from storage."""
+        fullpath = os.path.join(self.rootpath, fullpath)
+        try:
+            with open(fullpath, 'r') as f:
+                return f.read()
+        except FileNotFoundError:
+            raise exceptions.PathNotFoundError(fullpath)
 
-    async def list_blueprints(self) -> Sequence[str]:
-        return list(self._walk_blueprints())
+    async def write(self, fullpath: str, content: str):
+        """Writes the information to the storage."""
+        fullpath = os.path.join(self.rootpath, fullpath)
+        try:
+            with open(fullpath, 'w') as f:
+                return f.write(content)
+        except FileNotFoundError:
+            raise exceptions.PathNotFoundError(fullpath)
+
+    async def list_items(self) -> Sequence[storage.StorageItem]:
+        return list(self._walk_items())

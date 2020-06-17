@@ -34,3 +34,17 @@ class InvalidConnectionError(MasonError):
 
     def __init__(self, a: 'port.Port', b: 'port.Port'):
         super().__init__(f'Cannot connect {a.name} to {b.name}.')
+
+
+class PathNotFoundError(MasonError):
+    """Raised when unable to load a storage item."""
+
+    def __init__(self, path: str):
+        super().__init__(f'Cannot find path: {path}')
+
+
+class UnknownFormatError(MasonError):
+    """Raised when loading an unknown file format."""
+
+    def __init__(self, ext: str):
+        super().__init__(f'Uknown format: {ext}')

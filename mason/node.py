@@ -132,10 +132,11 @@ class Node(metaclass=NodeMeta):
         """Initializes this node from its schema."""
         if my_schema:
             for port_name, schema_port in my_schema.ports.items():
+                overrides = {'node': self}
                 try:
-                    overrides = {'value': values[port_name]}
+                    overrides['value'] = values[port_name]
                 except KeyError:
-                    overrides = {}
+                    pass
                 self.ports[port_name] = schema_port.evolve(**overrides)
 
             for signal_name in my_schema.signals:
@@ -328,6 +329,10 @@ class Blueprint(Node):
     on_run: callbacks.Signal
     on_teardown: callbacks.Signal
 
+    def __init__(self, version: str = '0.0.0', **bp_options):
+        super().__init__(**bp_options)
+        self.version = version
+
     def __enter__(self):
         return self
 
@@ -435,6 +440,8 @@ def nodify(*args,
             annotations[result_name] = port.Port(
                 sig.return_annotation,
                 direction=port.PortDirection.Output)
+
+        bound_func.__name__ = func.__name__
 
         node_attrs = {
             '__annotations__': annotations,

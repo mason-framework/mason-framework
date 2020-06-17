@@ -1,21 +1,47 @@
 {
-  "label": "pythagorean",
-  "nodes": [
-    {"uid": "a", "type": "blueprint.Input"},
-    {"uid": "b", "type": "blueprint.Input"},
-    {"uid": "a2", "type": "math.Pow"},
-    {"uid": "b2", "type": "math.Pow"},
-    {"uid": "add", "type": "math.Add"},
-    {"uid": "sqrt", "type": "math.Sqrt"},
-    {"uid": "c", "type": "blueprint.Return"}
-  ],
-  "connections": [
-    {"source": "a.value", "target": "a2.base"},
-    {"source": "b.value", "target": "b2.base"},
-    {"source": "a2.value", "target": "add.a"},
-    {"source": "b2.value", "target": "add.b"},
-    {"source": "add.value", "target": "sqrt.number"},
-    {"source": "sqrt.value", "target": "c.value"},
-    {"source": "on_run", "target": "c.return_"}
-  ]
+  "nodes": {
+    "a": {
+      "type": "blueprint.Input"
+    },
+    "b": {
+      "type": "blueprint.Input"
+    },
+    "a^2": {
+      "type": "math.Pow",
+      "connect": {
+        "base": ["a.value"]
+      }
+    },
+    "b^2": {
+      "type": "math.Pow",
+      "connect": {
+        "base": ["b.value"]
+      }
+    },
+    "a^2+b^2": {
+      "type": "math.Add",
+      "connect": {
+        "a": ["a^2.value"],
+        "b": ["b^2.value"]
+      }
+    },
+    "sqrt(a^2+b^2)": {
+      "type": "math.Sqrt",
+      "connect": {
+        "number": ["a^2+b^2.value"]
+      }
+    },
+    "c": {
+      "type": "blueprint.Return",
+      "connect": {
+        "value": ["sqrt(a^2+b^2).value"]
+      }
+    },
+    "on_run": {
+      "type": "blueprint.On",
+      "connect": {
+        "triggered": ["c.return_"]
+      }
+    }
+  }
 }

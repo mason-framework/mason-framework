@@ -5,7 +5,6 @@ from mason import exceptions
 from mason import events
 from mason import middleware
 from mason import library
-from mason import io
 from mason import node
 from mason import port
 from mason import storage
@@ -28,13 +27,9 @@ PortDirection = port.PortDirection
 Storage = storage.Storage
 Signal = callbacks.Signal
 
-dump_library = io.dump_library
 getter = port.getter
 get_default_library = library.get_default_library
 inport = port.inport
-load_blueprint = io.load_blueprint
-load_config = io.load_config
 nodify = node.nodify
 outport = port.outport
-parse_blueprint = io.parse_blueprint
 slot = callbacks.slot
