@@ -7,7 +7,7 @@ from typing import Any, Sequence
 import mason
 
 
-class For(mason.Node):
+class ForLoop(mason.Node):
     """Defines a For Loop node."""
 
     start: int = 0
@@ -16,7 +16,7 @@ class For(mason.Node):
 
     index: mason.outport(int)
 
-    index_changed: mason.Signal
+    changed: mason.Signal
     cancelled: mason.Signal
     finished: mason.Signal
 
@@ -29,10 +29,10 @@ class For(mason.Node):
     async def run(self):
         """Implement internal run function."""
         self._cancelled.clear()
-        start, stop, interval = await self.gather('start', 'stop', 'interval')
+        start, stop, interval = self.get('start', 'stop', 'interval')
         for i in range(start, stop, interval):
             self.ports['index'].local_value = i
-            await self.emit('index_changed')
+            await self.emit('changed')
             if self._cancelled.is_set():
                 await self.emit('cancelled')
                 break
@@ -51,7 +51,7 @@ class Iterate(mason.Node):
     items: mason.inport(Sequence[Any])
     item: mason.outport(Any)
 
-    item_changed: mason.Signal
+    changed: mason.Signal
     cancelled: mason.Signal
     finished: mason.Signal
 
@@ -63,10 +63,10 @@ class Iterate(mason.Node):
     async def run(self):
         """Implement internal iteration logic."""
         self._cancelled.clear()
-        items = await self.get('items')
+        items = self.get('items')
         for item in items:
             self.ports['item'].local_value = item
-            await self.emit('item_changed')
+            await self.emit('changed')
             if self._cancelled.is_set():
                 await self.emit('cancelled')
                 break
@@ -81,7 +81,7 @@ class Enumerate(mason.Node):
     index: mason.outport(int)
     item: mason.outport(Any)
 
-    item_changed: mason.Signal
+    changed: mason.Signal
     cancelled: mason.Signal
     finished: mason.Signal
 
@@ -93,11 +93,11 @@ class Enumerate(mason.Node):
     async def run(self):
         """Implement internal iteration logic."""
         self._cancelled.clear()
-        items = await self.get('items')
+        items = self.get('items')
         for index, item in enumerate(items):
             self.ports['index'].local_value = index
             self.ports['item'].local_value = item
-            await self.emit('item_changed')
+            await self.emit('changed')
             if self._cancelled.is_set():
                 await self.emit('cancelled')
                 break
@@ -134,7 +134,7 @@ class WaitForAll(mason.Node):
             await self.emit('finished')
 
 
-class While(mason.Node):
+class WhileLoop(mason.Node):
     """While loop node."""
 
     condition: Any
@@ -152,7 +152,7 @@ class While(mason.Node):
     async def run(self):
         """Perform while loop."""
         self._cancelled.clear()
-        while await self.get('condition'):
+        while self.get('condition'):
             await self.emit('triggered')
             if self._cancelled.is_set():
                 await self.emit('cancelled')
@@ -166,21 +166,21 @@ class While(mason.Node):
         self._cancelled.set()
 
 
-class If(mason.Node):
-    """Control logic for if/else checks."""
+class Branch(mason.Node):
+    """Control logic for branching flows."""
 
     condition: Any
 
-    passed: mason.Signal
-    failed: mason.Signal
+    on_true: mason.Signal
+    on_false: mason.Signal
 
     @mason.slot
     async def check(self):
         """Checks whether or not the condition is true and emits signals."""
-        if await self.get('condition'):
-            await self.emit('passed')
+        if self.get('condition'):
+            await self.emit('on_true')
         else:
-            await self.emit('failed')
+            await self.emit('on_false')
 
 
 @mason.nodify
@@ -201,9 +201,9 @@ class Get(mason.Node):
     value: mason.outport(Any)
 
     @mason.getter('value')
-    async def get_value(self) -> Any:
+    def get_value(self) -> Any:
         """Returns the value from the context."""
-        key, default = await self.gather('key', 'default')
+        key, default = self.get('key', 'default')
         context = self.get_context()
         if context:
             return context.state.get(key or self._label or self.uid, default)
@@ -216,13 +216,16 @@ class Set(mason.Node):
     key: str
     value: Any
 
+    finished: mason.Signal
+
     @mason.slot
     async def store(self):
         """Stores the value at the current time to the context state."""
-        key, value = await self.gather('key', 'value')
+        key, value = self.get('key', 'value')
         context = self.get_context()
         if context:
             context.state[key or self.label] = value
+        await self.emit('finished')
 
 
 class Print(mason.Node):
@@ -234,7 +237,7 @@ class Print(mason.Node):
     @mason.slot
     async def print_(self):
         """Prints current message."""
-        print(await self.get('message'))
+        print(self.get('message'))
         await self.emit('printed')
 
 
@@ -253,7 +256,7 @@ class Log(mason.Node):
     @mason.slot
     async def log(self):
         """Logs to the logger."""
-        logger_name, level, message = await self.gather(
+        logger_name, level, message = self.get(
             'logger', 'level', 'message')
         log_level = getattr(logging, level)
         logger = logging.getLogger(logger_name)

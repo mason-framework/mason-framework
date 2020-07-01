@@ -1,11 +1,11 @@
 """Defines Node classes."""
-import asyncio
 import contextlib
 import functools
 import inspect
 import uuid
+import enum
 from typing import Any, Callable, Dict, Optional, Set, Sequence, TypeVar, Union
-from typing import Generator, Tuple, Type, TYPE_CHECKING
+from typing import Collection, Generator, Tuple, Type, TYPE_CHECKING
 
 import attr
 
@@ -28,9 +28,9 @@ if TYPE_CHECKING:
 class ExecutionContext:
     """Context information when running a flow."""
 
-    args: Dict[str, Any] = None
-    state: Dict[str, Any] = None
-    results: Dict[str, Any] = None
+    args: Dict[str, Any]
+    state: Dict[str, Any]
+    results: Dict[str, Any]
 
 
 class NodeMeta(type):
@@ -196,14 +196,11 @@ class Node(metaclass=NodeMeta):
         """Helper function to emit a signal by name."""
         await self.signals[signal_name].emit(*args)
 
-    async def gather(self, *port_names: str) -> Sequence[Any]:
-        """Gathers multiple port values."""
-        tasks = (self.ports[port_name].get() for port_name in port_names)
-        return await asyncio.gather(*tasks)
-
-    async def get(self, port_name: str) -> Any:
+    def get(self, *port_names: str) -> Union[Any, Tuple[Any]]:
         """Returns the port value for the given port name."""
-        return await self.ports[port_name].get()
+        values = tuple(self.ports[port_name].get_value()
+                       for port_name in port_names)
+        return values[0] if len(port_names) == 1 else values
 
     def get_context(self) -> Optional[ExecutionContext]:
         """Returns the context for this node."""
@@ -349,7 +346,7 @@ class Blueprint(Node):
                        initial_state: Dict[str, Any] = None,
                        **args: Any) -> Any:
         """Executes the blueprint."""
-        with self.execution_context(initial_state, args) as context:
+        with self.execution_context(initial_state or {}, args) as context:
             self.dispatch(_events.BlueprintStarted(self))
             await self.setup()
             try:
@@ -381,9 +378,11 @@ class Blueprint(Node):
             await node.teardown()
 
 
-def nodify(*args,
+def nodify(*decorated,
            type_name: str = '',
            result_name: str = 'result',
+           default_label: Optional[str] = None,
+           shape: Optional[str] = None,
            node_type: Optional[Type[Node]] = None):
     """Decorator for generating a node type from a function."""
     T = TypeVar('T')
@@ -419,21 +418,26 @@ def nodify(*args,
             except KeyError:
                 pass
 
-        async def bound_func(inst: Node) -> Any:
+        def runner(inst: Node) -> Any:
             """Method to invoke the function."""
             kwargs = {}
             if pass_context_as:
                 kwargs[pass_context_as] = inst.get_context()
-            values = await inst.gather(*args)
-            kwargs.update(zip(args, values))
+            if len(args) == 1:
+                kwargs[args[0]] = inst.get(args[0])
+            elif len(args) > 1:
+                kwargs.update(zip(args, inst.get(*args)))
             kwargs.update({sig_name: inst.signals[sig_name]
                            for sig_name in signals})
-            result = func(**kwargs)
-            if inspect.isawaitable(result):
-                return await result
-            return result
+            return func(**kwargs)
 
-        if hasattr(func, '__slot__'):
+        if inspect.iscoroutinefunction(func):
+            async def bound_func(inst: Node):
+                return await runner(inst)
+        else:
+            bound_func = runner
+
+        if  hasattr(func, '__slot__'):
             setattr(bound_func, '__slot__', func.__slot__)
 
         if sig.return_annotation is not inspect.Parameter.empty:
@@ -446,6 +450,8 @@ def nodify(*args,
         node_attrs = {
             '__annotations__': annotations,
             '__init__': init,
+            '__shape__': shape,
+            '__default_label__': default_label,
             func.__name__: bound_func,
             **defaults,
         }
@@ -457,6 +463,6 @@ def nodify(*args,
         node_class.__schema__.group = node_group
         func.__node__ = node_class
         return func
-    if len(args) == 1:
-        return inner(args[0])
+    if len(decorated) == 1:
+        return inner(decorated[0])
     return inner

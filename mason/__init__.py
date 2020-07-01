@@ -7,6 +7,7 @@ from mason import middleware
 from mason import library
 from mason import node
 from mason import port
+from mason import schema
 from mason import storage
 
 try:
@@ -22,8 +23,10 @@ Event = events.Event
 Dispatcher = middleware.Dispatcher
 Middleware = middleware.Middleware
 Node = node.Node
+NodeShape = schema.NodeShape
 Port = port.Port
 PortDirection = port.PortDirection
+PortVisibility = port.PortVisibility
 Storage = storage.Storage
 Signal = callbacks.Signal
 

@@ -18,7 +18,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='mason.library',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=b'\n\rlibrary.proto\x12\rmason.library\"|\n\nPortSchema\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04type\x18\x02 \x01(\t\x12\x11\n\tdirection\x18\x03 \x01(\t\x12\x10\n\x08sequence\x18\x04 \x01(\x08\x12\x0b\n\x03map\x18\x05 \x01(\x08\x12\x0f\n\x07\x63hoices\x18\x06 \x03(\t\x12\x0f\n\x07\x64\x65\x66\x61ult\x18\x07 \x01(\t\"s\n\nNodeSchema\x12\r\n\x05group\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12(\n\x05ports\x18\x03 \x03(\x0b\x32\x19.mason.library.PortSchema\x12\x0f\n\x07signals\x18\x04 \x03(\t\x12\r\n\x05slots\x18\x05 \x03(\t\"N\n\x0f\x42lueprintSchema\x12\r\n\x05group\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0f\n\x07signals\x18\x04 \x03(\t\x12\r\n\x05slots\x18\x05 \x03(\t\"g\n\x07Library\x12(\n\x05nodes\x18\x01 \x03(\x0b\x32\x19.mason.library.NodeSchema\x12\x32\n\nblueprints\x18\x02 \x03(\x0b\x32\x1e.mason.library.BlueprintSchemab\x06proto3'
+  serialized_pb=b'\n\rlibrary.proto\x12\rmason.library\"\x90\x01\n\nPortSchema\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04type\x18\x02 \x01(\t\x12\x11\n\tdirection\x18\x03 \x01(\t\x12\x10\n\x08sequence\x18\x04 \x01(\x08\x12\x0b\n\x03map\x18\x05 \x01(\x08\x12\x0f\n\x07\x63hoices\x18\x06 \x03(\t\x12\x0f\n\x07\x64\x65\x66\x61ult\x18\x07 \x01(\t\x12\x12\n\nvisibility\x18\x08 \x01(\t\"\x99\x01\n\nNodeSchema\x12\r\n\x05group\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\r\n\x05shape\x18\x03 \x01(\t\x12\x15\n\rdefault_label\x18\x04 \x01(\t\x12(\n\x05ports\x18\x05 \x03(\x0b\x32\x19.mason.library.PortSchema\x12\x0f\n\x07signals\x18\x06 \x03(\t\x12\r\n\x05slots\x18\x07 \x03(\t\"N\n\x0f\x42lueprintSchema\x12\r\n\x05group\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\x0f\n\x07signals\x18\x04 \x03(\t\x12\r\n\x05slots\x18\x05 \x03(\t\"g\n\x07Library\x12(\n\x05nodes\x18\x01 \x03(\x0b\x32\x19.mason.library.NodeSchema\x12\x32\n\nblueprints\x18\x02 \x03(\x0b\x32\x1e.mason.library.BlueprintSchemab\x06proto3'
 )
 
 
@@ -80,6 +80,13 @@ _PORTSCHEMA = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='visibility', full_name='mason.library.PortSchema.visibility', index=7,
+      number=8, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
@@ -92,8 +99,8 @@ _PORTSCHEMA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=32,
-  serialized_end=156,
+  serialized_start=33,
+  serialized_end=177,
 )
 
 
@@ -119,22 +126,36 @@ _NODESCHEMA = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='ports', full_name='mason.library.NodeSchema.ports', index=2,
-      number=3, type=11, cpp_type=10, label=3,
+      name='shape', full_name='mason.library.NodeSchema.shape', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='default_label', full_name='mason.library.NodeSchema.default_label', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='ports', full_name='mason.library.NodeSchema.ports', index=4,
+      number=5, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='signals', full_name='mason.library.NodeSchema.signals', index=3,
-      number=4, type=9, cpp_type=9, label=3,
+      name='signals', full_name='mason.library.NodeSchema.signals', index=5,
+      number=6, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='slots', full_name='mason.library.NodeSchema.slots', index=4,
-      number=5, type=9, cpp_type=9, label=3,
+      name='slots', full_name='mason.library.NodeSchema.slots', index=6,
+      number=7, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
@@ -151,8 +172,8 @@ _NODESCHEMA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=158,
-  serialized_end=273,
+  serialized_start=180,
+  serialized_end=333,
 )
 
 
@@ -203,8 +224,8 @@ _BLUEPRINTSCHEMA = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=275,
-  serialized_end=353,
+  serialized_start=335,
+  serialized_end=413,
 )
 
 
@@ -241,8 +262,8 @@ _LIBRARY = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=355,
-  serialized_end=458,
+  serialized_start=415,
+  serialized_end=518,
 )
 
 _NODESCHEMA.fields_by_name['ports'].message_type = _PORTSCHEMA

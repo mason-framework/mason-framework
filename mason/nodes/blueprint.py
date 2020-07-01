@@ -22,16 +22,16 @@ def exit_(code: int = 0):
 class Input(mason.Node):
     """Defines a node to extract an input variable from a flow."""
 
-    key: str
-    default: Any
+    __shape__ = mason.NodeShape.Round
+
+    default: mason.inport(Any, visibility=mason.PortVisibility.Editable)
     value: mason.outport(Any)
 
     @mason.getter('value')
-    async def get_value(self) -> Any:
+    def get_value(self) -> Any:
         """Extracts the value for the given output port from the context."""
-        key, default = await self.gather('key', 'default')
-        if key is None:
-            key = self._label or self.uid
+        key = self._label or self.uid
+        default = self.get('default')
         context = self.get_context()
         return context.args.get(key, default) if context else default
 
@@ -39,7 +39,7 @@ class Input(mason.Node):
 class Output(mason.Node):
     """Defines a node to add output values to the context."""
 
-    key: str
+    name: str
     value: Any
 
     assigned: mason.Signal
@@ -47,11 +47,9 @@ class Output(mason.Node):
     @mason.slot
     async def assign(self):
         """Assigns the value for this node to the context."""
-        key, value = await self.gather('key', 'value')
-        if key is None:
-            key = self._label or self.uid
+        name, value = self.get('key', 'value')
         context = self.get_context()
-        context.results[key] = value
+        context.results[name] = value
         await self.emit('assigned')
 
 
@@ -63,18 +61,23 @@ class Emit(mason.Node):
     @mason.slot
     async def emit(self):
         """Emits the signal through the blueprint for this node."""
-        ev = await self.get('event')
+        ev = self.get('event')
         await self.blueprint.emit(ev)
 
 
 class On(mason.Node):
     """Triggers when a blueprint signal is emitted."""
 
-    event: str = 'on_run'
+    __shape__ = mason.NodeShape.Round
+
+    event: mason.inport(
+        str,
+        default='on_run',
+        visibility=mason.PortVisibility.Editable)
     triggered: mason.Signal
 
     async def setup(self):
-        ev = await self.get('event')
+        ev = self.get('event')
         self.blueprint.signals[ev].connect(self.run)
 
     async def run(self):
@@ -85,5 +88,5 @@ class On(mason.Node):
             await self.emit('triggered')
 
     async def teardown(self):
-        ev = await self.get('event')
+        ev = self.get('event')
         self.blueprint.signals[ev].disconnect(self.run)

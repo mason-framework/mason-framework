@@ -24,6 +24,15 @@ class PortDirection(enum.Enum):
     Output = 'output'
 
 
+class PortVisibility(enum.Enum):
+    """Defines visibility options for UI."""
+
+    Visible = 'visible'
+    Editable = 'editable'
+    Connectable = 'connectable'
+    Hidden = 'hidden'
+
+
 class Port:
     """Defines a data storage class for nodes."""
 
@@ -36,8 +45,10 @@ class Port:
                  name: str = '',
                  title: str = '',
                  value: Any = None,
-                 node: 'node.Node' = None):
+                 node: 'node.Node' = None,
+                 visibility: PortVisibility = PortVisibility.Visible):
         self.annotation = annotation
+        self.visibility = visibility
         self.name = name
         self.default = default
         self.direction = direction
@@ -135,22 +146,22 @@ class Port:
                 port._connections.remove(self)  # pylint: disable=protected-access
                 self._connections.remove(port)
 
-    async def get(self) -> Any:
+    def get_value(self) -> Any:
         """Returns the current value of this port."""
         with self.node:
             is_input = self.direction == PortDirection.Input
             use_connection = is_input and self.is_connected
 
             if use_connection and self.is_sequence:
-                return {await other.get() for other in self._connections}
+                return {other.get_value() for other in self._connections}
             if use_connection and self.is_map:
-                return {other.name: await other.get()
+                return {other.name: other.get_value()
                         for other in self._connections}
             if use_connection:
                 conn = next(iter(self._connections))
-                return await conn.get()
+                return conn.get_value()
             if self.getter:
-                return await self.getter()
+                return self.getter()
             return self.local_value
 
     @property

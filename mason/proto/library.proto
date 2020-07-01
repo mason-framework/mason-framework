@@ -10,14 +10,17 @@ message PortSchema {
   bool map = 5;
   repeated string choices = 6;
   string default = 7;
+  string visibility = 8;
 }
 
 message NodeSchema {
   string group = 1;
   string name = 2;
-  repeated PortSchema ports = 3;
-  repeated string signals = 4;
-  repeated string slots = 5;
+  string shape = 3;
+  string default_label = 4;
+  repeated PortSchema ports = 5;
+  repeated string signals = 6;
+  repeated string slots = 7;
 }
 
 message BlueprintSchema {

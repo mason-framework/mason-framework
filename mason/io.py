@@ -122,6 +122,8 @@ def _convert_node_schema_to_proto(
         name=node_schema.name,
         group=node_schema.group,
         ports=ports,
+        shape=node_schema.shape.value if node_schema.shape else None,
+        default_label=node_schema.default_label,
         signals=list(sorted(node_schema.signals)),
         slots=list(sorted(node_schema.slots)),
     )
@@ -142,6 +144,7 @@ def _convert_port_schema_to_proto(
         map=port_schema.is_map,
         choices=port_schema.choices,
         default=default,
+        visibility=port_schema.visibility.value,
     )
 
 

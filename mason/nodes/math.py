@@ -6,46 +6,50 @@ from typing import Any
 
 import mason
 
-math_node = functools.partial(mason.nodify, result_name='value')
+math_node = functools.partial(
+    mason.nodify,
+    result_name='value',
+    shape=mason.NodeShape.Round,
+)
 
 
-@math_node
-def const(constant: Any) -> Any:
-    """Returns the constant value."""
-    return constant
+@math_node(default_label='x')
+def const(x: Any) -> Any:
+    """Returns the constant value of x."""
+    return x
 
 
-@math_node
-def add(a: float, b: float) -> float:
-    """Return the result of adding a and b."""
-    return a + b
+@math_node(default_label='x+y')
+def add(x: float, y: float) -> float:
+    """Return the result of adding x and y."""
+    return x + y
 
-@math_node
-def sub(a: float, b: float) -> float:
-    """Return the result of subtracting b from a."""
-    return a - b
+@math_node(default_label='x-y')
+def sub(x: float, y: float) -> float:
+    """Return the result of subtracting y from x."""
+    return x - y
 
-@math_node
-def mult(a: float, b: float) -> float:
-    """Return the product of multiplication of a and b."""
-    return a * b
+@math_node(default_label='x*y')
+def mult(x: float, y: float) -> float:
+    """Return the product of multiplication of x and y."""
+    return x * y
 
-@math_node
-def div(dividend: float, divisor: float) -> float:
-    """Return the result of division of the dividend by the divisor."""
-    return dividend / divisor
+@math_node(default_label='x/y')
+def div(x: float, y: float) -> float:
+    """Return the result of division of x by y."""
+    return x / y
 
-@math_node
-def neg(number: float) -> float:
-    """Return the negative of number."""
-    return -number
+@math_node(default_label='-x')
+def neg(x: float) -> float:
+    """Return the negative of x."""
+    return -x
 
-@math_node
-def pow_(base: float, exponent: float = 2) -> float:
-    """Return the exponentiation of base by exponent."""
-    return base ** exponent
+@math_node(default_label='x^y')
+def pow_(x: float, y: float = 2) -> float:
+    """Return the exponentiation of x by y."""
+    return x ** y
 
-@math_node
-def sqrt(number: float) -> float:
-    """Return the square root of number."""
-    return math.sqrt(number)
+@math_node(default_label='√(x)')
+def sqrt(x: float) -> float:
+    """Return the square root of x."""
+    return math.sqrt(x)

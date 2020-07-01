@@ -1,7 +1,8 @@
 """Defines model schema files."""
+import enum
 import inspect
 import typing
-from typing import Dict, Set, Type, TYPE_CHECKING
+from typing import Dict, Set, Type, TYPE_CHECKING, Optional
 
 import attr
 
@@ -10,6 +11,13 @@ from mason import port
 
 if TYPE_CHECKING:
     from mason import node
+
+
+
+class NodeShape(enum.Enum):
+    """Define the shape for this node."""
+
+    Round = 'round'
 
 
 @attr.s(auto_attribs=True, eq=False)
@@ -21,6 +29,8 @@ class Schema:
     ports: Dict[str, 'port.Port']
     signals: Set[str]
     slots: Set[str]
+    shape: Optional[str] = None
+    default_label: Optional[str] = None
 
     @property
     def uid(self) -> str:
@@ -61,5 +71,7 @@ def generate(model: Type['node.Node']) -> Schema:
                     name=model_name,
                     ports=ports,
                     signals=signals,
+                    shape=getattr(model, '__shape__', None),
+                    default_label=getattr(model, '__default_label__', None),
                     slots=slots)
     return schema
