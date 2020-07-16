@@ -1,21 +1,51 @@
 {
-  "name": "pythagorean",
-  "nodes": [
-    {"name": "a", "type": "flow.Input"},
-    {"name": "b", "type": "flow.Input"},
-    {"name": "a2", "type": "math.Pow"},
-    {"name": "b2", "type": "math.Pow"},
-    {"name": "add", "type": "math.Add"},
-    {"name": "sqrt", "type": "math.Sqrt"},
-    {"name": "c", "type": "flow.Return"}
-  ],
-  "connections": [
-    {"source": "a.value", "target": "a2.base"},
-    {"source": "b.value", "target": "b2.base"},
-    {"source": "a2.value", "target": "add.a"},
-    {"source": "b2.value", "target": "add.b"},
-    {"source": "add.value", "target": "sqrt.number"},
-    {"source": "sqrt.value", "target": "c.value"},
-    {"source": "__self__.triggered", "target": "c.return_"}
-  ]
+  "a": {
+    "blueprint.Input": {}
+  },
+  "b": {
+    "blueprint.Input": {}
+  },
+  "a^2": {
+    "math.Pow": {
+      "connect": {
+        "base": ["a.value"]
+      }
+    }
+  },
+  "b^2": {
+    "math.Pow": {
+      "connect": {
+        "base": ["b.value"]
+      }
+    }
+  },
+  "a^2+b^2": {
+    "math.Add": {
+      "connect": {
+        "a": ["a^2.value"],
+        "b": ["b^2.value"]
+      }
+    }
+  },
+  "sqrt(a^2+b^2)": {
+    "math.Sqrt": {
+      "connect": {
+        "number": ["a^2+b^2.value"]
+      }
+    }
+  },
+  "c": {
+    "blueprint.Return": {
+      "connect": {
+        "value": ["sqrt(a^2+b^2).value"]
+      }
+    }
+  },
+  "on_run": {
+    "blueprint.On": {
+      "connect": {
+        "triggered": ["c.return_"]
+      }
+    }
+  }
 }

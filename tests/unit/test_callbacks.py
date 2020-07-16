@@ -156,4 +156,4 @@ def test_slot_decorator_marks_function():
     @callbacks.slot
     def func():
         pass
-    assert func.is_slot is True
+    isinstance(func, callbacks.Slot)

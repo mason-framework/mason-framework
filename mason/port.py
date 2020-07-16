@@ -4,11 +4,16 @@ import enum
 import functools
 import weakref
 from collections import abc
-from typing import Any, Awaitable, Callable, Dict, Optional, Set, Sequence
-from typing import Union
+from typing import Any, Awaitable, Callable, Dict, Optional, Set
+from typing import Sequence, TypeVar
+from typing import Union, TYPE_CHECKING
 
 from mason import exceptions
 
+if TYPE_CHECKING:
+    from mason import node
+
+T = TypeVar('T')
 _CHOICES_TYPE = Optional[Union[Dict[str, Any], Sequence[Any]]]
 _GETTER_TYPE = Callable[[], Awaitable[Any]]
 
@@ -17,6 +22,15 @@ class PortDirection(enum.Enum):
 
     Input = 'input'
     Output = 'output'
+
+
+class PortVisibility(enum.Enum):
+    """Defines visibility options for UI."""
+
+    Visible = 'visible'
+    Editable = 'editable'
+    Connectable = 'connectable'
+    Hidden = 'hidden'
 
 
 class Port:
@@ -28,16 +42,18 @@ class Port:
                  choices: _CHOICES_TYPE = None,
                  default: Any = None,
                  direction: PortDirection = PortDirection.Input,
-                 getter: Optional[_GETTER_TYPE] = None,
                  name: str = '',
                  title: str = '',
-                 value: Any = None):
-
+                 value: Any = None,
+                 node: 'node.Node' = None,
+                 visibility: PortVisibility = PortVisibility.Visible):
         self.annotation = annotation
+        self.visibility = visibility
         self.name = name
         self.default = default
         self.direction = direction
-        self.getter = getter
+        self.getter: Optional[_GETTER_TYPE] = None
+        self.node = node
 
         origin = getattr(annotation, '__origin__', None)
 
@@ -75,6 +91,11 @@ class Port:
         return self.is_sequence or self.is_map or not self.is_connected
 
     @property
+    def connections(self) -> Set['Port']:
+        """Returns a set of ports this instance is connected to."""
+        return set(self._connections)
+
+    @property
     def choices(self) -> _CHOICES_TYPE:
         """Returns an optional sequence of strings for this port."""
         if self._choices:
@@ -105,12 +126,14 @@ class Port:
             name=self.name,
             default=self.default,
             direction=self.direction,
-            getter=self.getter,
             value=self._local_value,
-            title=self._title
+            title=self._title,
+            node=self.node,
         )
         props.update(overrides)
-        return Port(**props)
+        new_port = Port(**props)
+        new_port.getter = self.getter
+        return new_port
 
     def disconnect(self, *ports: 'Port') -> None:
         """Disconnects all ports, or the port specified as other."""
@@ -123,22 +146,23 @@ class Port:
                 port._connections.remove(self)  # pylint: disable=protected-access
                 self._connections.remove(port)
 
-    async def get(self) -> Any:
+    def get_value(self) -> Any:
         """Returns the current value of this port."""
-        is_input = self.direction == PortDirection.Input
-        use_connection = is_input and self.is_connected
+        with self.node:
+            is_input = self.direction == PortDirection.Input
+            use_connection = is_input and self.is_connected
 
-        if use_connection and self.is_sequence:
-            return {await other.get() for other in self._connections}
-        if use_connection and self.is_map:
-            return {other.name: await other.get()
-                    for other in self._connections}
-        if use_connection:
-            conn = next(iter(self._connections))
-            return await conn.get()
-        if self.getter:
-            return await self.getter()
-        return self.local_value
+            if use_connection and self.is_sequence:
+                return {other.get_value() for other in self._connections}
+            if use_connection and self.is_map:
+                return {other.name: other.get_value()
+                        for other in self._connections}
+            if use_connection:
+                conn = next(iter(self._connections))
+                return conn.get_value()
+            if self.getter:
+                return self.getter()
+            return self.local_value
 
     @property
     def is_connected(self) -> bool:
@@ -167,6 +191,12 @@ class Port:
         return self._title or self.name.title()
 
     @property
+    def uid(self) -> str:
+        """Returns the unique id of this port."""
+        node_uid = self.node.uid if self.node else '<< unknown >>'
+        return f'{node_uid}.{self.name}'
+
+    @property
     def value_type(self) -> Any:
         """Returns the value type of this port."""
         args = getattr(self.annotation, '__args__', None)
@@ -179,3 +209,11 @@ class Port:
 
 inport = functools.partial(Port, direction=PortDirection.Input)
 outport = functools.partial(Port, direction=PortDirection.Output)
+
+
+def getter(port_name: str) -> Callable[[T], T]:
+    """Marks this function as a getter for a port."""
+    def inner(func: T) -> T:
+        func.__port_getter__ = port_name
+        return func
+    return inner

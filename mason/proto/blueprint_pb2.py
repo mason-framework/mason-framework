@@ -11,7 +11,7 @@ from google.protobuf import symbol_database as _symbol_database
 _sym_db = _symbol_database.Default()
 
 
-from google.protobuf import any_pb2 as google_dot_protobuf_dot_any__pb2
+from google.protobuf import struct_pb2 as google_dot_protobuf_dot_struct__pb2
 
 
 DESCRIPTOR = _descriptor.FileDescriptor(
@@ -19,49 +19,11 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   package='mason.blueprint',
   syntax='proto3',
   serialized_options=None,
-  serialized_pb=b'\n\x0f\x62lueprint.proto\x12\x0fmason.blueprint\x1a\x19google/protobuf/any.proto\",\n\nConnection\x12\x0e\n\x06source\x18\x01 \x01(\t\x12\x0e\n\x06target\x18\x02 \x01(\t\"9\n\x04Port\x12\x0c\n\x04name\x18\x01 \x01(\t\x12#\n\x05value\x18\x02 \x01(\x0b\x32\x14.google.protobuf.Any\"\x8a\x01\n\x04Node\x12\x0b\n\x03uid\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\r\n\x05title\x18\x03 \x01(\t\x12\x0c\n\x04type\x18\x04 \x01(\t\x12$\n\x05ports\x18\x05 \x03(\x0b\x32\x15.mason.blueprint.Port\x12$\n\x05nodes\x18\x06 \x03(\x0b\x32\x15.mason.blueprint.Node\"\x9b\x01\n\tBlueprint\x12\x0b\n\x03uid\x18\x01 \x01(\t\x12\x0c\n\x04name\x18\x02 \x01(\t\x12\r\n\x05title\x18\x03 \x01(\t\x12\x0c\n\x04type\x18\x04 \x01(\t\x12$\n\x05nodes\x18\x05 \x03(\x0b\x32\x15.mason.blueprint.Node\x12\x30\n\x0b\x63onnections\x18\x06 \x03(\x0b\x32\x1b.mason.blueprint.Connectionb\x06proto3'
+  serialized_pb=b'\n\x0f\x62lueprint.proto\x12\x0fmason.blueprint\x1a\x1cgoogle/protobuf/struct.proto\"S\n\x04Port\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t\x12\r\n\x05label\x18\x03 \x01(\t\x12\x0c\n\x04type\x18\x04 \x01(\t\x12\x11\n\tdirection\x18\x05 \x01(\t\"I\n\nConnection\x12\x0e\n\x06source\x18\x01 \x01(\t\x12+\n\x07targets\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.ListValue\"\x96\x04\n\x04Node\x12\x0b\n\x03uid\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\x12/\n\x05ports\x18\x04 \x03(\x0b\x32 .mason.blueprint.Node.PortsEntry\x12/\n\x05nodes\x18\x05 \x03(\x0b\x32 .mason.blueprint.Node.NodesEntry\x12\x0f\n\x07signals\x18\x06 \x03(\t\x12\r\n\x05slots\x18\x07 \x03(\t\x12+\n\x03set\x18\x08 \x03(\x0b\x32\x1e.mason.blueprint.Node.SetEntry\x12\x33\n\x07\x63onnect\x18\t \x03(\x0b\x32\".mason.blueprint.Node.ConnectEntry\x1a\x43\n\nPortsEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12$\n\x05value\x18\x02 \x01(\x0b\x32\x15.mason.blueprint.Port:\x02\x38\x01\x1a\x43\n\nNodesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12$\n\x05value\x18\x02 \x01(\x0b\x32\x15.mason.blueprint.Node:\x02\x38\x01\x1a*\n\x08SetEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12\r\n\x05value\x18\x02 \x01(\t:\x02\x38\x01\x1aJ\n\x0c\x43onnectEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12)\n\x05value\x18\x02 \x01(\x0b\x32\x1a.google.protobuf.ListValue:\x02\x38\x01\"\xc1\x01\n\tBlueprint\x12\x0b\n\x03uid\x18\x01 \x01(\t\x12\r\n\x05label\x18\x02 \x01(\t\x12\x0c\n\x04type\x18\x03 \x01(\t\x12\x0f\n\x07version\x18\x04 \x01(\t\x12\x34\n\x05nodes\x18\x05 \x03(\x0b\x32%.mason.blueprint.Blueprint.NodesEntry\x1a\x43\n\nNodesEntry\x12\x0b\n\x03key\x18\x01 \x01(\t\x12$\n\x05value\x18\x02 \x01(\x0b\x32\x15.mason.blueprint.Node:\x02\x38\x01\x62\x06proto3'
   ,
-  dependencies=[google_dot_protobuf_dot_any__pb2.DESCRIPTOR,])
+  dependencies=[google_dot_protobuf_dot_struct__pb2.DESCRIPTOR,])
 
 
-
-
-_CONNECTION = _descriptor.Descriptor(
-  name='Connection',
-  full_name='mason.blueprint.Connection',
-  filename=None,
-  file=DESCRIPTOR,
-  containing_type=None,
-  fields=[
-    _descriptor.FieldDescriptor(
-      name='source', full_name='mason.blueprint.Connection.source', index=0,
-      number=1, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='target', full_name='mason.blueprint.Connection.target', index=1,
-      number=2, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
-  ],
-  extensions=[
-  ],
-  nested_types=[],
-  enum_types=[
-  ],
-  serialized_options=None,
-  is_extendable=False,
-  syntax='proto3',
-  extension_ranges=[],
-  oneofs=[
-  ],
-  serialized_start=63,
-  serialized_end=107,
-)
 
 
 _PORT = _descriptor.Descriptor(
@@ -80,6 +42,65 @@ _PORT = _descriptor.Descriptor(
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
       name='value', full_name='mason.blueprint.Port.value', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='label', full_name='mason.blueprint.Port.label', index=2,
+      number=3, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='type', full_name='mason.blueprint.Port.type', index=3,
+      number=4, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='direction', full_name='mason.blueprint.Port.direction', index=4,
+      number=5, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=66,
+  serialized_end=149,
+)
+
+
+_CONNECTION = _descriptor.Descriptor(
+  name='Connection',
+  full_name='mason.blueprint.Connection',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='source', full_name='mason.blueprint.Connection.source', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='targets', full_name='mason.blueprint.Connection.targets', index=1,
       number=2, type=11, cpp_type=10, label=1,
       has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
@@ -97,10 +118,158 @@ _PORT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=109,
-  serialized_end=166,
+  serialized_start=151,
+  serialized_end=224,
 )
 
+
+_NODE_PORTSENTRY = _descriptor.Descriptor(
+  name='PortsEntry',
+  full_name='mason.blueprint.Node.PortsEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='mason.blueprint.Node.PortsEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='mason.blueprint.Node.PortsEntry.value', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=b'8\001',
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=505,
+  serialized_end=572,
+)
+
+_NODE_NODESENTRY = _descriptor.Descriptor(
+  name='NodesEntry',
+  full_name='mason.blueprint.Node.NodesEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='mason.blueprint.Node.NodesEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='mason.blueprint.Node.NodesEntry.value', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=b'8\001',
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=574,
+  serialized_end=641,
+)
+
+_NODE_SETENTRY = _descriptor.Descriptor(
+  name='SetEntry',
+  full_name='mason.blueprint.Node.SetEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='mason.blueprint.Node.SetEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='mason.blueprint.Node.SetEntry.value', index=1,
+      number=2, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=b'8\001',
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=643,
+  serialized_end=685,
+)
+
+_NODE_CONNECTENTRY = _descriptor.Descriptor(
+  name='ConnectEntry',
+  full_name='mason.blueprint.Node.ConnectEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='mason.blueprint.Node.ConnectEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='mason.blueprint.Node.ConnectEntry.value', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  serialized_options=b'8\001',
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=687,
+  serialized_end=761,
+)
 
 _NODE = _descriptor.Descriptor(
   name='Node',
@@ -117,37 +286,96 @@ _NODE = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='name', full_name='mason.blueprint.Node.name', index=1,
+      name='label', full_name='mason.blueprint.Node.label', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='title', full_name='mason.blueprint.Node.title', index=2,
+      name='type', full_name='mason.blueprint.Node.type', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='type', full_name='mason.blueprint.Node.type', index=3,
-      number=4, type=9, cpp_type=9, label=1,
-      has_default_value=False, default_value=b"".decode('utf-8'),
+      name='ports', full_name='mason.blueprint.Node.ports', index=3,
+      number=4, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='ports', full_name='mason.blueprint.Node.ports', index=4,
+      name='nodes', full_name='mason.blueprint.Node.nodes', index=4,
       number=5, type=11, cpp_type=10, label=3,
       has_default_value=False, default_value=[],
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='nodes', full_name='mason.blueprint.Node.nodes', index=5,
-      number=6, type=11, cpp_type=10, label=3,
+      name='signals', full_name='mason.blueprint.Node.signals', index=5,
+      number=6, type=9, cpp_type=9, label=3,
       has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='slots', full_name='mason.blueprint.Node.slots', index=6,
+      number=7, type=9, cpp_type=9, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='set', full_name='mason.blueprint.Node.set', index=7,
+      number=8, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='connect', full_name='mason.blueprint.Node.connect', index=8,
+      number=9, type=11, cpp_type=10, label=3,
+      has_default_value=False, default_value=[],
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+  ],
+  extensions=[
+  ],
+  nested_types=[_NODE_PORTSENTRY, _NODE_NODESENTRY, _NODE_SETENTRY, _NODE_CONNECTENTRY, ],
+  enum_types=[
+  ],
+  serialized_options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=227,
+  serialized_end=761,
+)
+
+
+_BLUEPRINT_NODESENTRY = _descriptor.Descriptor(
+  name='NodesEntry',
+  full_name='mason.blueprint.Blueprint.NodesEntry',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='key', full_name='mason.blueprint.Blueprint.NodesEntry.key', index=0,
+      number=1, type=9, cpp_type=9, label=1,
+      has_default_value=False, default_value=b"".decode('utf-8'),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      serialized_options=None, file=DESCRIPTOR),
+    _descriptor.FieldDescriptor(
+      name='value', full_name='mason.blueprint.Blueprint.NodesEntry.value', index=1,
+      number=2, type=11, cpp_type=10, label=1,
+      has_default_value=False, default_value=None,
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
@@ -157,16 +385,15 @@ _NODE = _descriptor.Descriptor(
   nested_types=[],
   enum_types=[
   ],
-  serialized_options=None,
+  serialized_options=b'8\001',
   is_extendable=False,
   syntax='proto3',
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=169,
-  serialized_end=307,
+  serialized_start=574,
+  serialized_end=641,
 )
-
 
 _BLUEPRINT = _descriptor.Descriptor(
   name='Blueprint',
@@ -183,21 +410,21 @@ _BLUEPRINT = _descriptor.Descriptor(
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='name', full_name='mason.blueprint.Blueprint.name', index=1,
+      name='label', full_name='mason.blueprint.Blueprint.label', index=1,
       number=2, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='title', full_name='mason.blueprint.Blueprint.title', index=2,
+      name='type', full_name='mason.blueprint.Blueprint.type', index=2,
       number=3, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
     _descriptor.FieldDescriptor(
-      name='type', full_name='mason.blueprint.Blueprint.type', index=3,
+      name='version', full_name='mason.blueprint.Blueprint.version', index=3,
       number=4, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=b"".decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
@@ -210,17 +437,10 @@ _BLUEPRINT = _descriptor.Descriptor(
       message_type=None, enum_type=None, containing_type=None,
       is_extension=False, extension_scope=None,
       serialized_options=None, file=DESCRIPTOR),
-    _descriptor.FieldDescriptor(
-      name='connections', full_name='mason.blueprint.Blueprint.connections', index=5,
-      number=6, type=11, cpp_type=10, label=3,
-      has_default_value=False, default_value=[],
-      message_type=None, enum_type=None, containing_type=None,
-      is_extension=False, extension_scope=None,
-      serialized_options=None, file=DESCRIPTOR),
   ],
   extensions=[
   ],
-  nested_types=[],
+  nested_types=[_BLUEPRINT_NODESENTRY, ],
   enum_types=[
   ],
   serialized_options=None,
@@ -229,27 +449,30 @@ _BLUEPRINT = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=310,
-  serialized_end=465,
+  serialized_start=764,
+  serialized_end=957,
 )
 
-_PORT.fields_by_name['value'].message_type = google_dot_protobuf_dot_any__pb2._ANY
-_NODE.fields_by_name['ports'].message_type = _PORT
-_NODE.fields_by_name['nodes'].message_type = _NODE
-_BLUEPRINT.fields_by_name['nodes'].message_type = _NODE
-_BLUEPRINT.fields_by_name['connections'].message_type = _CONNECTION
-DESCRIPTOR.message_types_by_name['Connection'] = _CONNECTION
+_CONNECTION.fields_by_name['targets'].message_type = google_dot_protobuf_dot_struct__pb2._LISTVALUE
+_NODE_PORTSENTRY.fields_by_name['value'].message_type = _PORT
+_NODE_PORTSENTRY.containing_type = _NODE
+_NODE_NODESENTRY.fields_by_name['value'].message_type = _NODE
+_NODE_NODESENTRY.containing_type = _NODE
+_NODE_SETENTRY.containing_type = _NODE
+_NODE_CONNECTENTRY.fields_by_name['value'].message_type = google_dot_protobuf_dot_struct__pb2._LISTVALUE
+_NODE_CONNECTENTRY.containing_type = _NODE
+_NODE.fields_by_name['ports'].message_type = _NODE_PORTSENTRY
+_NODE.fields_by_name['nodes'].message_type = _NODE_NODESENTRY
+_NODE.fields_by_name['set'].message_type = _NODE_SETENTRY
+_NODE.fields_by_name['connect'].message_type = _NODE_CONNECTENTRY
+_BLUEPRINT_NODESENTRY.fields_by_name['value'].message_type = _NODE
+_BLUEPRINT_NODESENTRY.containing_type = _BLUEPRINT
+_BLUEPRINT.fields_by_name['nodes'].message_type = _BLUEPRINT_NODESENTRY
 DESCRIPTOR.message_types_by_name['Port'] = _PORT
+DESCRIPTOR.message_types_by_name['Connection'] = _CONNECTION
 DESCRIPTOR.message_types_by_name['Node'] = _NODE
 DESCRIPTOR.message_types_by_name['Blueprint'] = _BLUEPRINT
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
-
-Connection = _reflection.GeneratedProtocolMessageType('Connection', (_message.Message,), {
-  'DESCRIPTOR' : _CONNECTION,
-  '__module__' : 'blueprint_pb2'
-  # @@protoc_insertion_point(class_scope:mason.blueprint.Connection)
-  })
-_sym_db.RegisterMessage(Connection)
 
 Port = _reflection.GeneratedProtocolMessageType('Port', (_message.Message,), {
   'DESCRIPTOR' : _PORT,
@@ -258,19 +481,71 @@ Port = _reflection.GeneratedProtocolMessageType('Port', (_message.Message,), {
   })
 _sym_db.RegisterMessage(Port)
 
+Connection = _reflection.GeneratedProtocolMessageType('Connection', (_message.Message,), {
+  'DESCRIPTOR' : _CONNECTION,
+  '__module__' : 'blueprint_pb2'
+  # @@protoc_insertion_point(class_scope:mason.blueprint.Connection)
+  })
+_sym_db.RegisterMessage(Connection)
+
 Node = _reflection.GeneratedProtocolMessageType('Node', (_message.Message,), {
+
+  'PortsEntry' : _reflection.GeneratedProtocolMessageType('PortsEntry', (_message.Message,), {
+    'DESCRIPTOR' : _NODE_PORTSENTRY,
+    '__module__' : 'blueprint_pb2'
+    # @@protoc_insertion_point(class_scope:mason.blueprint.Node.PortsEntry)
+    })
+  ,
+
+  'NodesEntry' : _reflection.GeneratedProtocolMessageType('NodesEntry', (_message.Message,), {
+    'DESCRIPTOR' : _NODE_NODESENTRY,
+    '__module__' : 'blueprint_pb2'
+    # @@protoc_insertion_point(class_scope:mason.blueprint.Node.NodesEntry)
+    })
+  ,
+
+  'SetEntry' : _reflection.GeneratedProtocolMessageType('SetEntry', (_message.Message,), {
+    'DESCRIPTOR' : _NODE_SETENTRY,
+    '__module__' : 'blueprint_pb2'
+    # @@protoc_insertion_point(class_scope:mason.blueprint.Node.SetEntry)
+    })
+  ,
+
+  'ConnectEntry' : _reflection.GeneratedProtocolMessageType('ConnectEntry', (_message.Message,), {
+    'DESCRIPTOR' : _NODE_CONNECTENTRY,
+    '__module__' : 'blueprint_pb2'
+    # @@protoc_insertion_point(class_scope:mason.blueprint.Node.ConnectEntry)
+    })
+  ,
   'DESCRIPTOR' : _NODE,
   '__module__' : 'blueprint_pb2'
   # @@protoc_insertion_point(class_scope:mason.blueprint.Node)
   })
 _sym_db.RegisterMessage(Node)
+_sym_db.RegisterMessage(Node.PortsEntry)
+_sym_db.RegisterMessage(Node.NodesEntry)
+_sym_db.RegisterMessage(Node.SetEntry)
+_sym_db.RegisterMessage(Node.ConnectEntry)
 
 Blueprint = _reflection.GeneratedProtocolMessageType('Blueprint', (_message.Message,), {
+
+  'NodesEntry' : _reflection.GeneratedProtocolMessageType('NodesEntry', (_message.Message,), {
+    'DESCRIPTOR' : _BLUEPRINT_NODESENTRY,
+    '__module__' : 'blueprint_pb2'
+    # @@protoc_insertion_point(class_scope:mason.blueprint.Blueprint.NodesEntry)
+    })
+  ,
   'DESCRIPTOR' : _BLUEPRINT,
   '__module__' : 'blueprint_pb2'
   # @@protoc_insertion_point(class_scope:mason.blueprint.Blueprint)
   })
 _sym_db.RegisterMessage(Blueprint)
+_sym_db.RegisterMessage(Blueprint.NodesEntry)
 
 
+_NODE_PORTSENTRY._options = None
+_NODE_NODESENTRY._options = None
+_NODE_SETENTRY._options = None
+_NODE_CONNECTENTRY._options = None
+_BLUEPRINT_NODESENTRY._options = None
 # @@protoc_insertion_point(module_scope)
